@@ -1,10 +1,10 @@
 -- called from nginx.conf
-local benchmark = {}
+local server = {}
 
-function benchmark.run()
+function server.run()
 
   -- note: apigee externs are defined in nginx.confg
-  local benchmark = lua2go.Load('./go/benchmark.so')
+  local benchmark = lua2go.Load('./go/server.so')
 
   local method = ngx.req.get_method()
 
@@ -18,4 +18,4 @@ function benchmark.run()
   lua2go.AddToGC(goResult);
   return b;
 end
-return benchmark
+return server
