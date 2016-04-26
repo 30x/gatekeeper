@@ -3,3 +3,4 @@ command -v luarocks-5.1 >/dev/null 2>&1 || { echo "I require luarocks-5.1 but it
 luarocks-5.1 install ffi
 luarocks-5.1 install --server=http://luarocks.org/dev lua2go
 luarocks-5.1 install busted
+busted ngx/lua/tests/**/*.lua
