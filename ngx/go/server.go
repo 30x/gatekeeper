@@ -13,9 +13,9 @@ import (
 var counter = 0
 
 //export process
-func process(method string, headers string, body string) C.Foo {
+func process(method string, headers string, body string) C.Header {
   counter = counter + 1
-  var foo =  C.Foo{1,2}
+  var foo =  C.Header{1,2}
 	return foo
 }
 
