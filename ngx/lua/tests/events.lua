@@ -1,15 +1,13 @@
 describe("a test", function()
   -- tests go here
 
-  describe("a nested block", function()
-    describe("can have many describes", function()
-      -- tests
-       it("tests insulate block does not update environment", function()
-        assert.is_nil(package.loaded.mymodule)  -- mymodule is not loaded
-        assert.is_nil(_G.myglobal)  -- _G.myglobal is not set
-        assert.is_nil(myglobal)
-      end)
-    end)
+  -- tests
+  it("checks c struct", function()
+    local events = require("../events")
+    local res = events.run();
+    assert.is_equal('1',string.char(res.a[0]))
+    assert.is_equal('2',string.char(res.b[0]))
+
   end)
 
   -- more tests pertaining to the top level
