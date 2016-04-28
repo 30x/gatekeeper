@@ -1,3 +1,5 @@
 server.so
 server.h
 .DS_Store
+.vscode
+.idea

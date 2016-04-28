@@ -2,7 +2,7 @@
 
 local events = {}
 local ffi = require('ffi')
-local lua2go = require('./lua2go')
+local c = require('./c')
 
 ffi.cdef[[
       typedef struct {
@@ -10,19 +10,17 @@ ffi.cdef[[
         char *b;
       } Header;
 
-      extern Header process(GoString p0, GoString p1, GoString p2);
+      extern Header process(char* p0, char* p1, char* p2);
     ]]
 
 function events.run()
   -- note: apigee externs are defined in nginx.confg
-  local benchmark = lua2go.Load('../go/server.so')
-
-  local method = lua2go.ToGo('test')
-  local headers = lua2go.ToGo('test')
-  local body = lua2go.ToGo('test')
-  local goResult = benchmark.process(method, headers, body)
-
+  local server = ffi.load('../go/server.so')
+  local c_str = c.getCharPointer('test');
+  local goResult = server.process(c_str,c_str,c_str)
+  c.free(c_str)
   return goResult;
 end
 
-return benchmark
+
+return events
