@@ -6,7 +6,7 @@ describe("a test", function()
     local events = require("../events")
     local headers = {}
     headers['mykey']= "myvalue"
-    local res = events.run('PUT',headers,'body body');
+    local res = events.rewrite_by_lua_block('PUT',headers,'body body');
     assert.is_equal('1',string.char(res.a[0]))
     assert.is_equal('2',string.char(res.b[0]))
 

@@ -8,7 +8,7 @@ ffi.cdef[[
     extern Header process(char* p0, GoSlice p1, char* p2);
 ]]
 
-function events.run(method, headers, body)
+function events.rewrite_by_lua_block(method, headers, body)
   -- note: apigee externs are defined in nginx.confg
   local server = ffi.load('../go/server.so')
   local methodString = c.ToCharPointer(method);
