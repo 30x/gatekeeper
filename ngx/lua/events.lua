@@ -15,7 +15,9 @@ function events.rewrite_by_lua_block(method, headers, body)
   local headersTable = c.KeyValueToGoSlice(headers);
   local bodyString = c.ToCharPointer(body);
   local goResult = server.process(methodString,headersTable,bodyString)
-
+  ffi.gc(headersTable,nil)
+  ffi.gc(bodyString,nil)
+  ffi.gc(methodString,nil)
   return goResult;
 end
 

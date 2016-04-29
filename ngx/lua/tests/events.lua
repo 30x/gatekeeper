@@ -1,3 +1,4 @@
+local ffi = require('ffi')
 describe("a test", function()
   -- tests go here
 
@@ -7,8 +8,8 @@ describe("a test", function()
     local headers = {}
     headers['mykey']= "myvalue"
     local res = events.rewrite_by_lua_block('PUT',headers,'body body');
-    assert.is_equal('1',string.char(res.a[0]))
-    assert.is_equal('2',string.char(res.b[0]))
+    assert.is_equal('1',ffi.string(res.key))
+    assert.is_equal('2',ffi.string(res.val))
 
   end)
 
