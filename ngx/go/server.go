@@ -1,12 +1,10 @@
 package main
 /*
 typedef struct {
-    char *a;
-    char *b;
+    char *key;
+    char *val;
 } Header;
-typedef struct{
-    Header *headers;
-} Headers;
+
 */
 import "C"
 
@@ -17,10 +15,9 @@ import (
 var counter = 0
 
 //export process
-func process(method *C.char, headers *C.Headers, body *C.char) C.Header {
+func process(method *C.char, headers []C.Header, body *C.char) C.Header {
   counter = counter + 1
   var m = C.GoString(method)
-
   var b = C.GoString(body)
 
   log.Printf(m)

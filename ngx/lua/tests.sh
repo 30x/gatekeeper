@@ -1,0 +1,1 @@
+./bustedjit ./tests/events.lua

@@ -5,26 +5,18 @@ local ffi = require('ffi')
 local c = require('./c')
 
 ffi.cdef[[
-      typedef struct {
-        char *a;
-        char *b;
-      } Header;
+    extern Header process(char* p0, GoSlice p1, char* p2);
+]]
 
-      extern Header process(char* p0, char* p1, char* p2);
-    ]]
-
-function events.run()
+function events.run(method, headers, body)
   -- note: apigee externs are defined in nginx.confg
   local server = ffi.load('../go/server.so')
-  local method = c.getCharPointer('method');
-  local headers = c.getCharPointer('headers');
-  local body = c.getCharPointer('body');
-  local goResult = server.process(method,headers,body)
-  c.free(method)
-  c.free(headers)
-  c.free(body)
+  local methodString = c.ToCharPointer(method);
+  local headersTable = c.KeyValueToGoSlice(headers);
+  local bodyString = c.ToCharPointer(body);
+  local goResult = server.process(methodString,headersTable,bodyString)
+
   return goResult;
 end
-
 
 return events

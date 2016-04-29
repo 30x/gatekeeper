@@ -1,10 +1,21 @@
-local c = {}
+--[[
+
+ A library for calling into Go from LuaJit
+
+--]]
+
+local lua2go = {}
 
 local ffi = require('ffi')
 
-
 ffi.cdef[[
   // standard Go definitions //
+
+  typedef struct {
+    char *key;
+    char *val;
+  } Header;
+
 
   typedef signed char GoInt8;
   typedef unsigned char GoUint8;
@@ -36,15 +47,90 @@ ffi.cdef[[
 
   // C stdlib definitions //
 
+  extern Header process(char* p0, GoSlice p1, char* p2);
   void free(void *ptr);
 ]]
 
-function c.free(var)
- local p = ffi.gc(var, nil)
- p = nil
+local makeGoString = ffi.typeof('GoString')
+local makeGoSlice = ffi.typeof('GoSlice')
+local makeGoStringArray = ffi.typeof('GoString[?]')
+local makeGoIntArray = ffi.typeof('GoInt[?]')
+local identity = function(x) return x end
+
+-- types: "nil", "number", "string", "boolean", "table", "function", "thread", or "userdata"
+local goTypes = {
+  number = 'GoInt',
+  string = 'GoString'
+}
+
+local goArrayConstructors = {
+  number = makeGoIntArray,
+  string = makeGoStringArray
+}
+
+local goConverters = {
+  number = identity
+}
+goConverters['nil'] = identity
+
+
+--
+-- public interface
+--
+
+-- create cdata object
+lua2go.New = ffi.new
+
+-- add cdata to garbage collector, returns GC ref
+lua2go.AddToGC = function(cdata)
+  return ffi.gc(cdata, ffi.C.free)
 end
 
-function c.ToGoArray(table)
+-- returns the typeof the Go object
+lua2go.GoType = ffi.typeof
+
+-- loads and returns a Go library
+lua2go.Load = ffi.load
+
+-- defines loaded functions
+lua2go.Externs = ffi.cdef
+
+-- convert C String to Lua
+lua2go.ToLuaString = function(str)
+  if ffi.typeof(str) == makeGoString then
+    return ffi.string(str.p)
+  else
+    return ffi.string(str) -- assume char *
+  end
+end
+
+-- convert Number to Lua
+lua2go.ToLuaNumber = tonumber
+
+-- converts Lua String to a Go String
+function lua2go.ToGoString(str)
+  if str == nil then return '' end
+  return makeGoString({ str, #str })
+end
+goConverters['string'] = lua2go.ToGoString
+
+-- returns the Go type a luaVar will map to
+-- currently supports Go strings and ints
+function lua2go.Type(luaVar)
+  local luaType = type(luaVar)
+  return goTypes[luaType]
+end
+
+-- retrieve a function to get the slice type for a lua table
+-- note: must be an array-style table, not a map
+function lua2go.SliceType(table)
+  return lua2go.Type(table[1])..'[?]'
+end
+
+-- will make a Go array that is either Ints or Strings based on the first element type
+-- must be an array-style table, not a map
+-- currently only supports string and ints
+function lua2go.ToGoArray(table)
   local luaType = type(table[1])
   local makeGoArray = goArrayConstructors[luaType]
   local goArray = makeGoArray(#table)
@@ -54,12 +140,70 @@ function c.ToGoArray(table)
   end
   return goArray
 end
+goConverters['table'] = lua2go.ToGoArray
 
 
-function c.getCharPointer( str )
+-- will make a Go slice that is either Ints or Strings based on the first element type
+-- must be an array-style table, not a map
+-- returns GoSlice, backing array
+function lua2go.ToGoSlice(table)
+  local goArray = lua2go.ToGoArray(table)
+  return makeGoSlice({ goArray, #table, #table }), goArray
+end
+
+function lua2go.KeyValueToGoSlice(table)
+  local luaType = type(table[1])
+  local goArray = ffi.typeof('Header[?]')(#table)
+  local index = 1;
+  for key, value in pairs(table) do
+    goArray[index] = ffi.typeof("Header")({ lua2go.ToCharPointer(key) , lua2go.ToCharPointer(value) })
+    index = index +1
+  end
+  return makeGoSlice({ goArray, #table, #table }), goArray
+end
+
+-- retrieve a function to convert the luaVar to a goVar based on the type of luaVar
+-- currently supports Go strings and ints
+function lua2go.Converter(luaVar)
+  return goConverters[type(luaVar)]
+end
+
+-- converts a goVar to a luaVar
+-- currently supports Go strings and ints
+function lua2go.ToLua(goVar)
+  if goVar == nil then return nil end
+  if ffi.istype('GoString', goVar) or ffi.istype('char *', goVar) then
+    return lua2go.ToLuaString(goVar)
+  elseif ffi.istype('GoInt', goVar) then
+    return lua2go.ToLuaNumber(goVar)
+  else
+    error('unknown type')
+  end
+end
+
+-- converts luaVar to goVar using simple type mapping
+-- currently only converts strings, numbers are left alone as they are converted automatically
+function lua2go.ToGo(luaVar)
+  local convert = lua2go.Converter(luaVar)
+  return convert(luaVar)
+end
+
+-- returns a pointer and a value holder variable
+function lua2go.ToGoPointer(luaVar)
+  local luaType = type(luaVar)
+  local makeGoArray = goArrayConstructors[luaType]
+  local ptr = makeGoArray(1, luaVar)
+  return ptr, ptr[0]
+end
+
+function lua2go.ToCharPointer(str)
   local c_str = ffi.new("char[?]", #str)
   ffi.copy(c_str, str)
   return c_str
 end
 
-return c
+local module_mt = {
+  __newindex = (function (table, key, val) error('Attempt to write to undeclared variable "' .. key .. '"') end)
+}
+setmetatable(lua2go, module_mt)
+return lua2go
