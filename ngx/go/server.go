@@ -1,21 +1,32 @@
 package main
 /*
 typedef struct {
-    string a;
-    string b;
+    char *a;
+    char *b;
 } Header;
+typedef struct{
+    Header *headers;
+} Headers;
 */
 import "C"
 
 import (
+    "log"
     )
 
 var counter = 0
 
 //export process
-func process(method string, headers string, body string) C.Foo {
+func process(method *C.char, headers *C.Headers, body *C.char) C.Header {
   counter = counter + 1
-  var foo =  C.Foo{1,2}
+  var m = C.GoString(method)
+
+  var b = C.GoString(body)
+
+  log.Printf(m)
+  log.Print(b)
+
+  var foo =  C.Header{C.CString("1"),C.CString("2")}
 	return foo
 }
 
