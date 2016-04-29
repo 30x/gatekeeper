@@ -16,9 +16,13 @@ ffi.cdef[[
 function events.run()
   -- note: apigee externs are defined in nginx.confg
   local server = ffi.load('../go/server.so')
-  local c_str = c.getCharPointer('test');
-  local goResult = server.process(c_str,c_str,c_str)
-  c.free(c_str)
+  local method = c.getCharPointer('method');
+  local headers = c.getCharPointer('headers');
+  local body = c.getCharPointer('body');
+  local goResult = server.process(method,headers,body)
+  c.free(method)
+  c.free(headers)
+  c.free(body)
   return goResult;
 end
 
