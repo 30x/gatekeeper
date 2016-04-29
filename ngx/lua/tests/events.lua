@@ -5,8 +5,7 @@ describe("a test", function()
   -- tests
   it("checks c struct", function()
     local events = require("../events")
-    local headers = {}
-    headers['mykey']= "myvalue"
+    local headers = {mykey="myvalue"}
     local res = events.rewrite_by_lua_block('PUT',headers,'body body');
     assert.is_equal('1',ffi.string(res.key))
     assert.is_equal('2',ffi.string(res.val))
