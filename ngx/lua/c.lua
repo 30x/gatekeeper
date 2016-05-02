@@ -11,12 +11,6 @@ local ffi = require('ffi')
 ffi.cdef[[
   // standard Go definitions //
 
-  typedef struct {
-    char *key;
-    char *val;
-  } KeyValue;
-
-
   typedef signed char GoInt8;
   typedef unsigned char GoUint8;
   typedef short GoInt16;
@@ -46,7 +40,6 @@ ffi.cdef[[
   typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 
   // C stdlib definitions //
-  extern KeyValue process(char* p0, KeyValue* p1, int p2, char* p3);
 
   void free(void *ptr);
 ]]
@@ -151,17 +144,7 @@ function lua2go.ToGoSlice(table)
   return makeGoSlice({ goArray, #table, #table }), goArray
 end
 
-function lua2go.KeyValueToGoSlice(table)
-  local goArray = ffi.new('KeyValue[?]',#table)
-  local index = 1;
-  for key,value in pairs(table) do print(key,value) end
-  for key, value in pairs(table) do
-    goArray[index ] = ffi.new("KeyValue", lua2go.ToCharPointer(key) , lua2go.ToCharPointer(value) )
-    print(goArray[index].key[0])
-    index = index +1
-  end
-  return goArray, index-1
-end
+
 
 -- retrieve a function to convert the luaVar to a goVar based on the type of luaVar
 -- currently supports Go strings and ints
