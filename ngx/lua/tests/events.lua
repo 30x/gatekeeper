@@ -11,8 +11,9 @@ describe("a test", function()
     headers.key3 = "value3"
 
     local res = events.rewrite_by_lua_block('PUT',headers,'body body');
-    assert.is_equal('1',ffi.string(res.key))
-    assert.is_equal('2',ffi.string(res.val))
+
+    assert.is_equal(res.key1, headers.key1)
+    assert.is_equal(res.key2, headers.key2)
 
   end)
 

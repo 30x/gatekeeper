@@ -144,7 +144,17 @@ function lua2go.ToGoSlice(table)
   return makeGoSlice({ goArray, #table, #table }), goArray
 end
 
-
+function lua2go.GoSliceToTable(slice)
+  local table = {}
+  local len = lua2go.ToLua(slice.len)
+  local current = ffi.cast("GoString *",slice.data)
+  for i=1, len do
+    local currentString = lua2go.ToLuaString(current.p)
+    table[i] =currentString
+    current = current+1
+  end
+  return table
+end
 
 -- retrieve a function to convert the luaVar to a goVar based on the type of luaVar
 -- currently supports Go strings and ints
