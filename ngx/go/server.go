@@ -23,9 +23,12 @@ func process(method string, headerKeys []string, headerValues []string, body str
   }
   length := keysLength
   for i:=0; i < length; i++  {
-    val := headerValues[i]
-    key := headerKeys[i]
-    log.Print(fmt.Sprintf("key is %s val is %s",key,val))
+    // val := headerValues[i]
+    // key := headerKeys[i]
+    headerKeys[i] = headerKeys[i]
+    headerValues[i] =  headerValues[i]+"modified"
+
+    //log.Print(fmt.Sprintf("key is %s val is %s",key,val))
   }
 
   //kv := C.KeyValue{C.CString("1"),C.CString("2")}
