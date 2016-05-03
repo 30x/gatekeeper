@@ -14,8 +14,6 @@ ffi.cdef[[
 
   extern struct process_return process(GoString p0, GoSlice p1, GoSlice p2, GoString p3);
 
-
-
 ]]
 
 function events.rewrite_by_lua_block(method, headers, body)
@@ -39,8 +37,6 @@ function events.rewrite_by_lua_block(method, headers, body)
   end
   return res;
 end
-
-
 
 function headersToTables(table)
   local index = 1
