@@ -1,15 +1,12 @@
 -- called from nginx.conf
 local server = {}
 
-function server.run()
+local events = require('./events')
+
+function server.rewrite_by_lua_block()
 
   -- note: apigee externs are defined in nginx.confg
-  local benchmark = lua2go.Load('./go/server.so')
-
-  local method = ngx.req.get_method()
-
-  local no_request_line = false
-  local rawHeaders = ngx.req.raw_header(no_request_line)
+  local rawHeaders = ngx.req.get_headers()
 
   local body = ngx.req.get_body_data() or '' -- cannot be nil
 
