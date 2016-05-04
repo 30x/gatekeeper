@@ -2,13 +2,13 @@
 
 const restify = require('restify')
 
-module.exports = function (port, cb) {
+module.exports = function (port, headersCb,cb) {
   function respond(req, res, next) {
-    console.log('headers')
+
     Object.keys(req.headers).forEach((key)=>{
-      console.log('{"%s": "%s"}',key,req.headers[key])
+      headersCb(key,req.headers[key])
     })
-    console.log('end headers')
+
     res.json(200,{testkey:'testres'});
     next();
   }
