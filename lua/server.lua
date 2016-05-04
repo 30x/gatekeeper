@@ -7,7 +7,7 @@ function server.onrequest()
 
   local headers = ngx.req.get_headers()
   local method = ngx.req.get_method()
-  local uri = ngx.req.get_uri()
+  local uri = ngx.var.uri
   local res = events.onrequest(uri, method, headers)
   return res;
 end
