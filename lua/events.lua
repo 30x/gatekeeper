@@ -8,30 +8,31 @@ ffi.cdef[[
 
   /* Return type for process */
   struct process_return {
-    GoSlice r0;
-    GoSlice r1;
-  };
+	GoString r0;
+	GoSlice r1;
+	GoSlice r2;
+};
 
-  extern struct process_return process(GoString p0, GoSlice p1, GoSlice p2, GoString p3);
+extern struct process_return process(GoString p0, GoString p1, GoSlice p2, GoSlice p3);
 
 ]]
 
-function events.rewrite_by_lua_block(method, headers, body)
+function events.onrequest(uri, method, headers)
   -- note: apigee externs are defined in nginx.confg
   local server = ffi.load('../go/server.so')
   local methodString = c.ToGoString(method)
+  local uriString = c.ToGoString(uri)
   local keys,values = headersToTables(headers)
   local headerKeys = c.ToGoSlice(keys)
   local headerValues = c.ToGoSlice(values)
   local bodyString = c.ToGoString(body)
-  local goResult = server.process(methodString,headerKeys,headerValues,bodyString)
+  local goResult = server.process(uriString, methodString,headerKeys,headerValues)
   ffi.gc(headerKeys,nil)
   ffi.gc(headerValues,nil)
-  ffi.gc(bodyString,nil)
   ffi.gc(methodString,nil)
   local res = {}
-  local keys = c.GoSliceToTable(goResult.r0)
-  local values = c.GoSliceToTable(goResult.r1)
+  local keys = c.GoSliceToTable(goResult.r1)
+  local values = c.GoSliceToTable(goResult.r2)
   for i,key in ipairs(keys) do
     res[key] = values[i]
   end

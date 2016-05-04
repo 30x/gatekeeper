@@ -10,7 +10,7 @@ describe("a test", function()
     headers.key2 = "value2"
     headers.key3 = "value3"
 
-    local res = events.rewrite_by_lua_block('PUT',headers,'body body');
+    local res = events.onrequest('http://someuri','PUT',headers);
 
     assert.is_equal(res.key1, headers.key1 .. 'modified')
     assert.is_equal(res.key2, headers.key2 .. 'modified')
