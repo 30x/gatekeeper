@@ -1,4 +1,6 @@
 'use strict'
-const rest = require('./rest')
-const server = rest()
-server.listen(process.env.REST_PORT || 8000)
+const restify = require('./rest')
+const port = process.env.REST_PORT || 8000
+restify(port,function(err,server){
+  console.log('successfully bound to rest port %s',port)
+})

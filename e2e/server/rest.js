@@ -1,39 +1,25 @@
 'use strict'
 
-var restify = require('restify');
+const restify = require('restify')
 
-
-module.exports = function () {
-
+module.exports = function (port, cb) {
   function respond(req, res, next) {
-    console.log('request received');
-    var returnVal = {};
-    returnVal[key] = value  || "unknown";
-    if(req.body){
-      returnVal.body = req.body;
-    }
-    res.json(200, returnVal, {});
+    console.log('headers')
+    Object.keys(req.headers).forEach((key)=>{
+      console.log('{"%s": "%s"}',key,req.headers[key])
+    })
+    console.log('end headers')
+    res.json(200,{testkey:'testres'});
     next();
   }
-
-  var server = restify.createServer({});
-
-  server.use(restify.gzipResponse());
-  server.use(restify.bodyParser());
-
+  var server = restify.createServer();
   server.get('/', respond);
+  server.head('/', respond);
+  server.put('/', respond);
+  server.post('/', respond);
+  server.del('/', respond);
 
-  server.post({
-    path: '/'
-  }, respond);
-  server.put({
-    path: '/'
-  }, respond);
-
-  server.del({
-    path: '/'
-  }, respond);
-
-  return server;
-
-};
+  server.listen(port || 8000, function (err) {
+    cb(err,server)
+  });
+}
