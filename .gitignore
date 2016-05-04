@@ -4,3 +4,4 @@ server.h
 .vscode
 .idea
 node_modules
+error.log
