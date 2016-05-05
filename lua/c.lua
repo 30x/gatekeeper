@@ -58,7 +58,8 @@ local goTypes = {
 
 local goArrayConstructors = {
   number = makeGoIntArray,
-  string = makeGoStringArray
+  string = makeGoStringArray,
+  table = makeGoStringArray
 }
 
 local goConverters = {
@@ -106,6 +107,7 @@ function lua2go.ToGoString(str)
   return makeGoString({ str, #str })
 end
 goConverters['string'] = lua2go.ToGoString
+goConverters['table'] = lua2go.ToGoString
 
 -- returns the Go type a luaVar will map to
 -- currently supports Go strings and ints
@@ -129,11 +131,21 @@ function lua2go.ToGoArray(table)
   local goArray = makeGoArray(#table)
   local toGoType = goConverters[luaType]
   for index, value in next, table do
-    goArray[index - 1] = toGoType(value)
+    if type(value) == 'table' then
+      local concat = '';
+      for inner_index, inner_value in next, value do
+         if inner_index > 1 then
+           concat = concat .. ','
+         end
+         concat = concat .. inner_value
+      end
+      goArray[index - 1] = toGoType(concat)
+    else
+      goArray[index - 1] = toGoType(value)
+    end
   end
   return goArray
 end
-goConverters['table'] = lua2go.ToGoArray
 
 
 -- will make a Go slice that is either Ints or Strings based on the first element type

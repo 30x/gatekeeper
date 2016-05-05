@@ -1,4 +1,4 @@
-local ffi = require('ffi')
+
 describe("a test", function()
   -- tests go here
 

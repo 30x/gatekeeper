@@ -27,9 +27,8 @@ describe('valid rest return', function () {
         uri: 'http://localhost:3000/',
         headers: {
           'X-Something-Something': 'test1',
-          'X-Something-Something2': 'test2'//,
-         // 'X-Something-SomethingMore': ['test3','test4']
-
+          'X-Something-Something2': 'test2',
+          'X-Something-SomethingMore': ['test3','test4']
         }
       }, function (err, r, body) {
         console.log('request received');
