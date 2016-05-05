@@ -18,11 +18,14 @@ describe("lua struct conversions", function()
   -- tests
   it("check flatten", function()
     local headers = {}
-    headers[1] = {}
-    headers[1][1] = 'test1val'
-    headers[1][2] = 'test2val'
-    headers[2] = 'test3val'
+    headers['key1'] = {}
+    headers['key1'][1] = 'test1val'
+    headers['key1'][2] = 'test2val'
+    headers['key2'] = 'test3val'
     local keys,vals = c.KeyValueToFlatArrays(headers)
+    assert.is_equal('key1',keys[1])
+    assert.is_equal('key1',keys[2])
+    assert.is_equal('key2',keys[3])
     assert.is_equal('test1val',vals[1])
     assert.is_equal('test2val',vals[2])
     assert.is_equal('test3val',vals[3])
