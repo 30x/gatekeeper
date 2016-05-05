@@ -8,7 +8,7 @@ describe("lua struct conversions", function()
     headers[1] = {}
     headers[1][1] = 'test1val'
     headers[1][2] = 'test2val'
-    local arr = c.ToGoArray(headers)
+    local arr = c.ToGoSlice(headers)
     local converted = c.GoSliceToTable(arr)
     assert.is_equal('test1val,test2val',converted[1])
   end)
