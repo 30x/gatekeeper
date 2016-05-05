@@ -8,9 +8,40 @@ describe("lua struct conversions", function()
     headers[1] = {}
     headers[1][1] = 'test1val'
     headers[1][2] = 'test2val'
-    local arr = c.ToGoSlice(headers)
+    local keys,vals = c.KeyValueToFlatArrays(headers)
+    local arr = c.ToGoSlice(vals)
     local converted = c.GoSliceToTable(arr)
-    assert.is_equal('test1val,test2val',converted[1])
+    assert.is_equal('test1val',converted[1])
+    assert.is_equal('test2val',converted[2])
+
+  end)
+  -- tests
+  it("check flatten", function()
+    local headers = {}
+    headers[1] = {}
+    headers[1][1] = 'test1val'
+    headers[1][2] = 'test2val'
+    headers[2] = 'test3val'
+    local keys,vals = c.KeyValueToFlatArrays(headers)
+    assert.is_equal('test1val',vals[1])
+    assert.is_equal('test2val',vals[2])
+    assert.is_equal('test3val',vals[3])
+
+  end)
+    -- tests
+  it("check table with a table mixed", function()
+    local headers = {}
+    headers[1] = {}
+    headers[1][1] = 'test1val'
+    headers[1][2] = 'test2val'
+    headers[2] = 'test3val'
+    local keys,vals = c.KeyValueToFlatArrays(headers)
+    local arr = c.ToGoSlice(vals)
+    local converted = c.GoSliceToTable(arr)
+    assert.is_equal('test1val',converted[1])
+    assert.is_equal('test2val',converted[2])
+    assert.is_equal('test3val',converted[3])
+
   end)
 
   -- more tests pertaining to the top level

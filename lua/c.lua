@@ -131,18 +131,7 @@ function lua2go.ToGoArray(table)
   local goArray = makeGoArray(#table)
   local toGoType = goConverters[luaType]
   for index, value in next, table do
-    if type(value) == 'table' then
-      local concat = '';
-      for inner_index, inner_value in next, value do
-         if inner_index > 1 then
-           concat = concat .. ','
-         end
-         concat = concat .. inner_value
-      end
-      goArray[index - 1] = toGoType(concat)
-    else
       goArray[index - 1] = toGoType(value)
-    end
   end
   return goArray
 end
@@ -154,6 +143,26 @@ end
 function lua2go.ToGoSlice(table)
   local goArray = lua2go.ToGoArray(table)
   return makeGoSlice({ goArray, #table, #table }), goArray
+end
+
+function lua2go.KeyValueToFlatArrays(table)
+  local keys = {}
+  local values = {}
+  local i = 1
+  for k, v in pairs(table) do
+    if type(v) == 'table' then
+      for inner_i,inner_value in ipairs(v) do
+        keys[i] = k
+        values[i] = inner_value
+        i = i + 1
+      end
+    else
+      keys[i] = k
+      values[i] = v
+      i = i + 1
+    end
+  end
+  return keys,values
 end
 
 function lua2go.GoSliceToTable(slice)
