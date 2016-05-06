@@ -13,7 +13,7 @@ var counter = 0
 func process(uri string, method string, headerKeys []string, headerValues []string) (string, []string, []string){
   counter = counter + 1
 
-  log.Printf("method %s",method)
+  log.Printf("method %s",uri)
   keysLength := len(headerKeys)
   valuesLength := len(headerValues)
   if(valuesLength !=  keysLength){
@@ -21,19 +21,30 @@ func process(uri string, method string, headerKeys []string, headerValues []stri
     return "",[]string{},[]string{}
   }
   length := keysLength
+  headers := make(map[string][]string)
   for i:=0; i < length; i++  {
-    // val := headerValues[i]
-    // key := headerKeys[i]
-   // headerKeys[i] = headerKeys[i]
+    key := headerKeys[i]
+    if _, ok := headers[key] ; !ok{
+      headers[key] = make([]string,10)
+    }
+    headers[key] = append(headers[key],headerValues[i])
     headerValues[i] =  headerValues[i]+"modified"
+  }
+  //do something with headers
+  keys := make([]string,keysLength)
+  vals := make([]string,keysLength)
 
-    //log.Print(fmt.Sprintf("key is %s val is %s",key,val))
+  for k,_:= range headers {
+    v := headers[k]
+    for _ ,val := range v {
+      keys = append(keys,k)
+      vals = append(vals,val)
+    }
   }
 
   //kv := C.KeyValue{C.CString("1"),C.CString("2")}
 
-
-	return uri, headerKeys,headerValues
+	return uri, keys, vals
 }
 
 func main() {}
