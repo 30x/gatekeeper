@@ -10,12 +10,26 @@ describe("a test", function()
     headers.key2 = "value2"
     headers.key3 = "value3"
 
-    local res = events.onrequest('http://someuri','PUT',headers);
+    local res = events.on_request('http://someuri','PUT',headers);
 
     assert.is_equal(res.key1, headers.key1 .. 'modified')
     assert.is_equal(res.key2, headers.key2 .. 'modified')
 
   end)
 
-  -- more tests pertaining to the top level
+  -- tests
+  it("checks c struct with weird maps", function()
+    local events = require("../events")
+    local headers = {}
+    headers.key1 = "value1,value2"
+    headers.key2 = "value3"
+    headers.key3 = {"value4","value5"}
+
+    local res = events.on_request('http://someuri','PUT',headers);
+
+    assert.is_equal(res.key1, headers.key1 .. 'modified')
+    assert.is_equal(res.key2, headers.key2 .. 'modified')
+
+  end)
+
 end)

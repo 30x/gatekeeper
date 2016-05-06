@@ -1,50 +1,54 @@
 package main
-
+/*
+*/
 import "C"
 
 import (
     "log"
-    "fmt"
+    "strings"
+    "bytes"
     )
 
 var counter = 0
 
 //export process
-func process(uri string, method string, headerKeys []string, headerValues []string) (string, []string, []string){
+func process(uri string, method string, rawHeaders string) (string, string){
   counter = counter + 1
-
-  log.Printf("method %s",uri)
-  keysLength := len(headerKeys)
-  valuesLength := len(headerValues)
-  if(valuesLength !=  keysLength){
-    fmt.Sprintf("keys %s must must equal values %s ",keysLength,valuesLength)
-    return "",[]string{},[]string{}
-  }
-  length := keysLength
-  headers := make(map[string][]string)
-  for i:=0; i < length; i++  {
-    key := headerKeys[i]
-    if _, ok := headers[key] ; !ok{
-      headers[key] = make([]string,10)
+  headerValues := strings.Split(rawHeaders,"\n")
+  headerMap := make(map[string][]string)
+  for _,header := range headerValues  {
+    keyValue := strings.Split(header,":")
+    key := keyValue[0]
+    value := keyValue[1]
+    if _, ok := headerMap[key] ; !ok{
+      headerMap[key] = make([]string,10)
     }
-    headers[key] = append(headers[key],headerValues[i])
-    headerValues[i] =  headerValues[i]+"modified"
+    headerMap[key] = append(headerMap[key], value)
   }
-  //do something with headers
-  keys := make([]string,keysLength)
-  vals := make([]string,keysLength)
 
-  for k,_:= range headers {
-    v := headers[k]
-    for _ ,val := range v {
-      keys = append(keys,k)
-      vals = append(vals,val)
+  //start something with headers
+  modifyHeaders(headerMap)
+  //end
+  var buffer bytes.Buffer
+  for key := range headerMap {
+    buffer.WriteString(key)
+    buffer.WriteString(":")
+    values := headerMap[key]
+    valuesString := strings.Join(values,",")
+    buffer.WriteString(valuesString)
+    buffer.WriteString("\n")
+  }
+  serializedHeaders := buffer.String()
+  log.Print(serializedHeaders)
+	return uri, serializedHeaders
+}
+func modifyHeaders(headers map[string][]string){
+  for k := range headers {
+    values := headers[k]
+    for _ ,value := range values {
+      value = value + "modified"
     }
   }
-
-  //kv := C.KeyValue{C.CString("1"),C.CString("2")}
-
-	return uri, keys, vals
 }
 
 func main() {}
