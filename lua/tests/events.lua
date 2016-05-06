@@ -17,10 +17,7 @@ describe("a test", function()
   -- tests
   it("checks c struct with weird maps", function()
     local events = require("../events")
-    local headers = {}
-    headers.key1 = "value1,value2"
-    headers.key2 = "value3"
-    headers.key3 = {"value4","value5"}
+    local headers = "key1: val1,val2\nkey2: val3,val4\nkey3: val3"
 
     local res = events.on_request('http://someuri','PUT',headers);
 

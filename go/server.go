@@ -12,13 +12,13 @@ import (
 var counter = 0
 
 //export process
-func process(uri string, method string, rawHeaders string) (string, string){
+func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
   counter = counter + 1
   log.Print(rawHeaders)
   headerValues := strings.Split(rawHeaders,"\n")
   headerMap := make(map[string][]string)
   for _, header := range headerValues  {
-    keyValue := strings.Split(header,":")
+    keyValue := strings.Split(header,": ")
     key := keyValue[0]
     value := keyValue[1]
     if _, ok := headerMap[key] ; !ok{
@@ -33,7 +33,7 @@ func process(uri string, method string, rawHeaders string) (string, string){
   var buffer bytes.Buffer
   for key := range headerMap {
     buffer.WriteString(key)
-    buffer.WriteString(":")
+    buffer.WriteString(": ")
     values := headerMap[key]
     valuesString := strings.Join(values,",")
     buffer.WriteString(valuesString)
@@ -41,7 +41,7 @@ func process(uri string, method string, rawHeaders string) (string, string){
   }
   serializedHeaders := buffer.String()
   log.Print(serializedHeaders)
-	return uri, serializedHeaders
+	return C.CString(uri), C.CString(serializedHeaders)
 }
 func modifyHeaders(headers map[string][]string){
   for k := range headers {
