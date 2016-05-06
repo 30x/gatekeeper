@@ -5,10 +5,7 @@ describe("a test", function()
   -- tests
   it("checks c struct", function()
     local events = require("../events")
-    local headers = {}
-    headers.key1="value1"
-    headers.key2 = "value2"
-    headers.key3 = "value3"
+    local headers = "key1: val1\nkey2: val2\nkey3: val3"
 
     local res = events.on_request('http://someuri','PUT',headers);
 

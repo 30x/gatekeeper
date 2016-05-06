@@ -14,9 +14,10 @@ var counter = 0
 //export process
 func process(uri string, method string, rawHeaders string) (string, string){
   counter = counter + 1
+  log.Print(rawHeaders)
   headerValues := strings.Split(rawHeaders,"\n")
   headerMap := make(map[string][]string)
-  for _,header := range headerValues  {
+  for _, header := range headerValues  {
     keyValue := strings.Split(header,":")
     key := keyValue[0]
     value := keyValue[1]
