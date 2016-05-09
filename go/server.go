@@ -4,6 +4,7 @@ package main
 import "C"
 
 import (
+    "log"
     "strings"
     "bytes"
     )
@@ -16,16 +17,19 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
   headerValues := strings.Split(rawHeaders,"\n")
   headerMap := make(map[string][]string)
   for _, header := range headerValues  {
+    log.Print(header)
     keyValue := strings.Split(header,": ")
-    key := keyValue[0]
-    valueString := keyValue[1]
-    if valueString != "" {
-      values := strings.Split(valueString,",")
-      if _, ok := headerMap[key] ; !ok{
-        headerMap[key] = make([]string,len(values))
-      }
-      for i:=0; i < len(values); i++ {
-         headerMap[key][i] = values[i]
+    if(len(keyValue) == 2){
+      key := keyValue[0]
+      valueString := keyValue[1]
+      if valueString != "" {
+        values := strings.Split(valueString,",")
+        if _, ok := headerMap[key] ; !ok{
+          headerMap[key] = make([]string,len(values))
+        }
+        for i:=0; i < len(values); i++ {
+          headerMap[key][i] = values[i]
+        }
       }
     }
 
