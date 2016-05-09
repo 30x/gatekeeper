@@ -16,6 +16,8 @@ function server.onrequest()
   for k,v in pairs(result.headers) do
     ngx.req.set_header(k,v)
   end
+  ngx.req.set_uri(result.uri)
+  -- ngx.req.set_method(somenumber)
   return result;
 end
 

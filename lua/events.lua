@@ -11,6 +11,7 @@ ffi.cdef[[
  struct process_return {
 	char* r0;
 	char* r1;
+  char* r2;
 };
 
   extern struct process_return process(GoString p0, GoString p1, GoString p2);
@@ -25,14 +26,15 @@ function events.on_request(uri, method, raw_headers)
   local headersString = c.ToGoString(raw_headers)
   -- local keys,values = headersToTables(headers)
   local goResult = server.process(uriString, methodString,headersString)
-  uri = c.ToLua(goResult.r0)
-  headersString = c.ToLua(goResult.r1)
-  local headers = parse_headers(headersString)
+  local uriResult = c.ToLua(goResult.r0)
+  local methodResult = c.ToLua(goResult.r1)
+  local headerResult = c.ToLua(goResult.r2)
+  local headers = parse_headers(headerResult)
 
   local res = {
     headers = headers,
-    uri = uri,
-    method = method
+    uri = uriResult,
+    method = methodResult
   }
   return res;
 end

@@ -14,7 +14,7 @@ import (
 var counter = 0
 
 //export process
-func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
+func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C.char){
   //  f,err := os.OpenFile("./ngx_go.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
   //  if err != nil {
 
@@ -69,7 +69,7 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
   // log.Print("headers are ")
   // log.Print( serializedHeaders)
 
-	return C.CString(uri), C.CString(serializedHeaders)
+	return C.CString(uri), C.CString(method), C.CString(serializedHeaders)
 }
 func modifyHeaders(headers http.Header){
   for k := range headers {
