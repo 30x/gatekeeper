@@ -23,12 +23,12 @@ function events.on_request(uri, method, raw_headers)
   local methodString = c.ToGoString(method)
   local uriString = c.ToGoString(uri)
   local headersString = c.ToGoString(raw_headers)
-  ngx.log(ngx.INFO,raw_headers)
   -- local keys,values = headersToTables(headers)
   local goResult = server.process(uriString, methodString,headersString)
   uri = c.ToLua(goResult.r0)
   headersString = c.ToLua(goResult.r1)
   local headers = parse_headers(headersString)
+
   local res = {
     headers = headers,
     uri = uri,
@@ -39,20 +39,24 @@ end
 
 function parse_headers(headersString)
   local result = {};
-  local headersRows = split(headersString,"\n")
+  local headersRows = lines(headersString)
   for i,row in ipairs(headersRows) do
     local keyValues = split(row,": ")
-    local key = keyValues[1]
-    local value = keyValues[2]
-    if key and value then
-      local t = result[key]
-      if not t then
-        t = {}
-        result[key] = t
-      end
-      local splitValues = split(value,',')
-      for i,splitValue in ipairs(splitValues) do
-        t[#t + 1] = splitValue
+    local length = #keyValues
+    if length == 2 then
+      local key = keyValues[1]
+      local value = keyValues[2]
+
+      if key and value then
+        local t = result[key]
+        if not t then
+          t = {}
+          result[key] = t
+        end
+        local splitValues = split(value,',')
+        for i,splitValue in ipairs(splitValues) do
+          t[#t + 1] = splitValue
+        end
       end
     end
   end
@@ -67,4 +71,10 @@ function split(s, delimiter)
     return result;
 end
 
+function lines(str)
+  local t = {}
+  local function helper(line) table.insert(t, line) return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
 return events

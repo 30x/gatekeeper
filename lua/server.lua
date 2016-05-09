@@ -13,11 +13,7 @@ function server.onrequest()
   local raw_headers = ngx.req.raw_header(true)
 
   local result = events.on_request(uri, method, raw_headers)
-
   for k,v in pairs(result.headers) do
-    ngx.log(ngx.INFO,"printing header")
-    ngx.log(ngx.INFO,v[1])
-    ngx.log(ngx.INFO,k)
     ngx.req.set_header(k,v)
   end
   return result;

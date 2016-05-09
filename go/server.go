@@ -4,7 +4,8 @@ package main
 import "C"
 
 import (
-    "log"
+    // "log"
+    // "os"
     "strings"
     "bytes"
     )
@@ -13,11 +14,17 @@ var counter = 0
 
 //export process
 func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
+  //  f,err := os.OpenFile("./ngx_go.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+  //  if err != nil {
+
+  //  }
+  // defer f.Close()
+  // log.SetOutput(f)
+
   counter = counter + 1
   headerValues := strings.Split(rawHeaders,"\n")
   headerMap := make(map[string][]string)
   for _, header := range headerValues  {
-    log.Print(header)
     keyValue := strings.Split(header,": ")
     if(len(keyValue) == 2){
       key := keyValue[0]
@@ -40,8 +47,7 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
   //end
   var buffer bytes.Buffer
   for key := range headerMap {
-    buffer.WriteString(key)
-    buffer.WriteString(": ")
+
     values := headerMap[key]
     var valuesBuffer bytes.Buffer
     for i:=0; i< len(values); i++ {
@@ -52,21 +58,32 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
         valuesBuffer.WriteString(values[i])
       }
     }
-    buffer.WriteString(valuesBuffer.String())
+    val := valuesBuffer.String()
+    buffer.WriteString(key)
+    buffer.WriteString(": ")
+    buffer.WriteString(val)
     buffer.WriteString("\n")
   }
   serializedHeaders := buffer.String()
+  // log.Print("headers are ")
+  // log.Print( serializedHeaders)
+
 	return C.CString(uri), C.CString(serializedHeaders)
 }
 func modifyHeaders(headers map[string][]string){
   for k := range headers {
-    for i:=0; i <  len(headers[k]); i++ {
-      headers[k][i] =  headers[k][i] + "modified"
+    if(strings.Contains(k,"X-MyHeader")){
+      for i:=0; i <  len(headers[k]); i++ {
+        newVal := "modified" + headers[k][i]
+        headers[k][i] = newVal
+
+      }
     }
   }
 }
+func main() {
 
-func main() {}
+}
 
 
 /*
