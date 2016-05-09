@@ -8,6 +8,7 @@ import (
     // "os"
     "strings"
     "bytes"
+	 "net/http"
     )
 
 var counter = 0
@@ -23,7 +24,7 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
 
   counter = counter + 1
   headerValues := strings.Split(rawHeaders,"\n")
-  headerMap := make(map[string][]string)
+  headerMap := make(http.Header)
   for _, header := range headerValues  {
     keyValue := strings.Split(header,": ")
     if(len(keyValue) == 2){
@@ -70,7 +71,7 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
 
 	return C.CString(uri), C.CString(serializedHeaders)
 }
-func modifyHeaders(headers map[string][]string){
+func modifyHeaders(headers http.Header){
   for k := range headers {
     if(strings.Contains(k,"X-MyHeader")){
       for i:=0; i <  len(headers[k]); i++ {
