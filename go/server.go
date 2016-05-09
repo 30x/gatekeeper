@@ -35,8 +35,18 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char){
     buffer.WriteString(key)
     buffer.WriteString(": ")
     values := headerMap[key]
-    valuesString := strings.Join(values,",")
-    buffer.WriteString(valuesString)
+    var valuesBuffer bytes.Buffer
+    i := 0
+    for _,value := range values {
+      if(value != ""){
+        if(i > 0){
+          valuesBuffer.WriteString(",")
+        }
+        valuesBuffer.WriteString(value)
+        i++
+      }
+    }
+    buffer.WriteString(valuesBuffer.String())
     buffer.WriteString("\n")
   }
   serializedHeaders := buffer.String()
