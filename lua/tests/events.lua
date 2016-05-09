@@ -8,9 +8,8 @@ describe("a test", function()
     local headers = "key1: val1\nkey2: val2\nkey3: val3"
 
     local res = events.on_request('http://someuri','PUT',headers);
-
-    assert.is_equal(res.key1, headers.key1 .. 'modified')
-    assert.is_equal(res.key2, headers.key2 .. 'modified')
+    assert.is_equal(res.headers.key1[1], 'val1' .. 'modified')
+    assert.is_equal(res.headers.key2[1], 'val2' .. 'modified')
 
   end)
 
@@ -21,8 +20,8 @@ describe("a test", function()
 
     local res = events.on_request('http://someuri','PUT',headers);
 
-    assert.is_equal(res.key1, headers.key1 .. 'modified')
-    assert.is_equal(res.key2, headers.key2 .. 'modified')
+    assert.is_equal(res.headers.key1[1], 'val1' .. 'modified')
+    assert.is_equal(res.headers.key2[1], 'val3' .. 'modified')
 
   end)
 

@@ -2,6 +2,7 @@
 
 local events = {}
 local ffi = require('ffi')
+local table = require('table')
 local c = require('./c')
 
 ffi.cdef[[
@@ -26,8 +27,9 @@ function events.on_request(uri, method, raw_headers)
   local goResult = server.process(uriString, methodString,headersString)
   uri = c.ToLua(goResult.r0)
   headersString = c.ToLua(goResult.r1)
+  local headers = parse_headers(headersString)
   local res = {
-    headers = parse_headers(headersString),
+    headers = headers,
     uri = uri,
     method = method
   }
@@ -41,12 +43,19 @@ function parse_headers(headersString)
     local keyValues = split(row,": ")
     local key = keyValues[1]
     local value = keyValues[2]
-    if result[key] then
-      table.insert(result[key],value)
-    else
-      result[key] = {value}
+    if key and value then
+      local t = result[key]
+      if not t then
+        t = {}
+        result[key] = t
+      end
+      local splitValues = split(value,',')
+      for i,splitValue in ipairs(splitValues) do
+        t[#t + 1] = splitValue
+      end
     end
   end
+  return result
 end
 
 function split(s, delimiter)
