@@ -9,6 +9,7 @@ import (
     "strings"
     "bytes"
 	 "net/http"
+   "net/url"
     )
 
 var counter = 0
@@ -21,8 +22,11 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
   //  }
   // defer f.Close()
   // log.SetOutput(f)
-
-  counter = counter + 1
+  //parse uri
+  parsedUri, err := url.Parse(uri)
+  if err != nil {
+    //log
+  }
   headerValues := strings.Split(rawHeaders,"\n")
   headerMap := make(http.Header)
   for _, header := range headerValues  {
@@ -69,7 +73,7 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
   // log.Print("headers are ")
   // log.Print( serializedHeaders)
 
-	return C.CString(uri), C.CString(method), C.CString(serializedHeaders)
+	return C.CString(parsedUri.String()), C.CString(method), C.CString(serializedHeaders)
 }
 func modifyHeaders(headers http.Header){
   for k := range headers {
