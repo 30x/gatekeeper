@@ -1,21 +1,28 @@
-local ffi = require('ffi')
+
 describe("a test", function()
   -- tests go here
 
   -- tests
   it("checks c struct", function()
     local events = require("../events")
-    local headers = {}
-    headers.key1="value1"
-    headers.key2 = "value2"
-    headers.key3 = "value3"
+    local headers = "key1: val1\nkey2: val2\nkey3: val3"
 
-    local res = events.rewrite_by_lua_block('PUT',headers,'body body');
-
-    assert.is_equal(res.key1, headers.key1 .. 'modified')
-    assert.is_equal(res.key2, headers.key2 .. 'modified')
+    local res = events.on_request('http://someuri','PUT',headers);
+    assert.is_equal(res.headers.key1[1], 'val1' .. 'modified')
+    assert.is_equal(res.headers.key2[1], 'val2' .. 'modified')
 
   end)
 
-  -- more tests pertaining to the top level
+  -- tests
+  it("checks c struct with weird maps", function()
+    local events = require("../events")
+    local headers = "key1: val1,val2\nkey2: val3,val4\nkey3: val3"
+
+    local res = events.on_request('http://someuri','PUT',headers);
+
+    assert.is_equal(res.headers.key1[1], 'val1' .. 'modified')
+    assert.is_equal(res.headers.key2[1], 'val3' .. 'modified')
+
+  end)
+
 end)

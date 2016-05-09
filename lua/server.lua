@@ -1,21 +1,23 @@
--- called from nginx.conf
+-- called from nginx.conf, knows about ngx
 local server = {}
 
-function server.run()
+local events = require('./events')
+local uuid = require('resty.jit-uuid')
 
-  -- note: apigee externs are defined in nginx.confg
-  local benchmark = lua2go.Load('./go/server.so')
-
+function server.onrequest()
+  local uuidInstance = uuid()             ---> v4 UUID (random)
+  local headers = ngx.req.get_headers()
   local method = ngx.req.get_method()
+  local uri = ngx.unescape_uri(ngx.var.request_uri)
+  -- ngx.req.set_header('X-APIGEE-REQUEST-ID',uuidInstance)
+  local raw_headers = ngx.req.raw_header(true)
 
-  local no_request_line = false
-  local rawHeaders = ngx.req.raw_header(no_request_line)
-
-  local body = ngx.req.get_body_data() or '' -- cannot be nil
-
---extern GoInt process(GoString p0, GoString p1, GoString p2);
-  local goResult = benchmark.process(lua2go.ToGo(method), lua2go.ToGo(rawHeaders), lua2go.ToGo(body))
-  lua2go.AddToGC(goResult);
-  return b;
+  local result = events.on_request(uri, method, raw_headers)
+  for k,v in pairs(result.headers) do
+    ngx.req.set_header(k,v)
+  end
+  return result;
 end
+
+
 return server

@@ -2,52 +2,79 @@
 
 local events = {}
 local ffi = require('ffi')
+local table = require('table')
 local c = require('./c')
 
 ffi.cdef[[
 
   /* Return type for process */
-  struct process_return {
-    GoSlice r0;
-    GoSlice r1;
-  };
+ struct process_return {
+	char* r0;
+	char* r1;
+};
 
-  extern struct process_return process(GoString p0, GoSlice p1, GoSlice p2, GoString p3);
+  extern struct process_return process(GoString p0, GoString p1, GoString p2);
 
 ]]
 
-function events.rewrite_by_lua_block(method, headers, body)
+function events.on_request(uri, method, raw_headers)
   -- note: apigee externs are defined in nginx.confg
   local server = ffi.load('../go/server.so')
   local methodString = c.ToGoString(method)
-  local keys,values = headersToTables(headers)
-  local headerKeys = c.ToGoSlice(keys)
-  local headerValues = c.ToGoSlice(values)
-  local bodyString = c.ToGoString(body)
-  local goResult = server.process(methodString,headerKeys,headerValues,bodyString)
-  ffi.gc(headerKeys,nil)
-  ffi.gc(headerValues,nil)
-  ffi.gc(bodyString,nil)
-  ffi.gc(methodString,nil)
-  local res = {}
-  local keys = c.GoSliceToTable(goResult.r0)
-  local values = c.GoSliceToTable(goResult.r1)
-  for i,key in ipairs(keys) do
-    res[key] = values[i]
-  end
+  local uriString = c.ToGoString(uri)
+  local headersString = c.ToGoString(raw_headers)
+  -- local keys,values = headersToTables(headers)
+  local goResult = server.process(uriString, methodString,headersString)
+  uri = c.ToLua(goResult.r0)
+  headersString = c.ToLua(goResult.r1)
+  local headers = parse_headers(headersString)
+
+  local res = {
+    headers = headers,
+    uri = uri,
+    method = method
+  }
   return res;
 end
 
-function headersToTables(table)
-  local index = 1
-  local keys = {}
-  local values = {}
-  for key, value in pairs(table) do
-    keys[index] = key
-    values[index] = value
-    index = index +1
+function parse_headers(headersString)
+  local result = {};
+  local headersRows = lines(headersString)
+  for i,row in ipairs(headersRows) do
+    local keyValues = split(row,": ")
+    local length = #keyValues
+    if length == 2 then
+      local key = keyValues[1]
+      local value = keyValues[2]
+
+      if key and value then
+        local t = result[key]
+        if not t then
+          t = {}
+          result[key] = t
+        end
+        local splitValues = split(value,',')
+        for i,splitValue in ipairs(splitValues) do
+          t[#t + 1] = splitValue
+        end
+      end
+    end
   end
-  return keys,values
+  return result
 end
 
+function split(s, delimiter)
+    result = {};
+    for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+        table.insert(result, match);
+    end
+    return result;
+end
+
+function lines(str)
+  local t = {}
+  local function helper(line) table.insert(t, line) return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
 return events
