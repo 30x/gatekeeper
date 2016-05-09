@@ -14,7 +14,7 @@ describe('valid rest return', function () {
     var closed = false
     server(port, function (key, value) {
       console.log('header {%s:%s}', key, value)
-      if (!closed && value.includes('test1modified')) {
+      if (!closed && value.includes('modifiedtest1')) {
         console.log('done')
         restify.close()
         done()
@@ -26,9 +26,9 @@ describe('valid rest return', function () {
       request({
         uri: 'http://localhost:3000/',
         headers: {
-          'X-Something-Something': 'test1',
-          'X-Something-Something2': 'test2',
-          'X-Something-SomethingMore': ['test3','test4']
+          'X-MyHeader-Something': 'test1',
+          'X-MyHeader-Something2': 'test2',
+          'X-MyHeader-SomethingMore': ['test3','test4']
         }
       }, function (err, r, body) {
         console.log('request received');
