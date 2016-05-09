@@ -23,32 +23,35 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
   // log.SetOutput(f)
 
   counter = counter + 1
-  headerValues := strings.Split(rawHeaders,"\n")
+  //parse headers into map
   headerMap := make(http.Header)
-  for _, header := range headerValues  {
-    keyValue := strings.Split(header,": ")
-    if(len(keyValue) == 2){
-      key := keyValue[0]
-      valueString := keyValue[1]
-      if valueString != "" {
-        values := strings.Split(valueString,",")
-        if _, ok := headerMap[key] ; !ok{
-          headerMap[key] = make([]string,len(values))
-        }
-        for i:=0; i < len(values); i++ {
-          headerMap[key][i] = values[i]
-        }
-      }
-    }
-
-  }
+  parseHeaders(headerMap, rawHeaders)
 
   //start something with headers
   modifyHeaders(headerMap)
   //end
+
+  //serialize map back to string
+  serializedHeaders := serializeHeaders(headerMap)
+  // log.Print("headers are ")
+  // log.Print( serializedHeaders)
+
+	return C.CString(uri), C.CString(method), C.CString(serializedHeaders)
+}
+func modifyHeaders(headerMap http.Header){
+  for k := range headerMap {
+    if(strings.Contains(k,"X-MyHeader")){
+      for i:=0; i <  len(headerMap–[k]); i++ {
+        newVal := "modified" + headerMap[k][i]
+        headerMap[k][i] = newVal
+
+      }
+    }
+  }
+}
+func serializeHeaders(headerMap http.Header) string{
   var buffer bytes.Buffer
   for key := range headerMap {
-
     values := headerMap[key]
     var valuesBuffer bytes.Buffer
     for i:=0; i< len(values); i++ {
@@ -66,20 +69,27 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
     buffer.WriteString("\n")
   }
   serializedHeaders := buffer.String()
-  // log.Print("headers are ")
-  // log.Print( serializedHeaders)
-
-	return C.CString(uri), C.CString(method), C.CString(serializedHeaders)
+  return serializedHeaders
 }
-func modifyHeaders(headers http.Header){
-  for k := range headers {
-    if(strings.Contains(k,"X-MyHeader")){
-      for i:=0; i <  len(headers[k]); i++ {
-        newVal := "modified" + headers[k][i]
-        headers[k][i] = newVal
 
+func parseHeaders(headerMap http.Header, rawHeaders string){
+  headerValues := strings.Split(rawHeaders,"\n")
+  for _, header := range headerValues  {
+    keyValue := strings.Split(header,": ")
+    if(len(keyValue) == 2){
+      key := keyValue[0]
+      valueString := keyValue[1]
+      if valueString != "" {
+        values := strings.Split(valueString,",")
+        if _, ok := headerMap[key] ; !ok{
+          headerMap[key] = make([]string,len(values))
+        }
+        for i:=0; i < len(values); i++ {
+          headerMap[key][i] = values[i]
+        }
       }
     }
+
   }
 }
 func main() {
