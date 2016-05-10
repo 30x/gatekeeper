@@ -38,11 +38,11 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
 
 	//serialize map back to string
 	serializedHeaders := serializeHeaders(headerMap)
-	// log.Print("headers are ")
-	// log.Print( serializedHeaders)
 
 	return C.CString(parsedUri.String()), C.CString(method), C.CString(serializedHeaders)
 }
+
+//modify the header map, placeholder for plugins
 func modifyHeaders(headerMap http.Header) {
 	for k := range headerMap {
 		if strings.Contains(k, "X-MyHeader") {
@@ -54,6 +54,8 @@ func modifyHeaders(headerMap http.Header) {
 		}
 	}
 }
+
+//serialize the headersMap back to a string
 func serializeHeaders(headerMap http.Header) string {
 	var buffer bytes.Buffer
 	for key := range headerMap {
@@ -78,6 +80,7 @@ func serializeHeaders(headerMap http.Header) string {
 	return serializedHeaders
 }
 
+//parse rawHeaders back into a map
 func parseHeaders(headerMap http.Header, rawHeaders string) {
 	headerValues := strings.Split(rawHeaders, "\n")
 	for _, header := range headerValues {
