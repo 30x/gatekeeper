@@ -22,8 +22,8 @@ var LogWarn = log.New(os.Stdout, "WARN: ", log.Ldate|log.Ltime|log.LUTC|log.Lsho
 //LogError the error log level
 var LogError = log.New(os.Stdout, "ERROR: ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 
-//export process
-func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C.char) {
+//export onRequest
+func onRequest(uri string, method string, rawHeaders string) (*C.char, *C.char, *C.char) {
 	//parse uri
 	parsedUri, err := url.Parse(uri)
 	if err != nil {
@@ -38,11 +38,25 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
 
 	//serialize map back to string
 	serializedHeaders := serializeHeaders(headerMap)
-	// log.Print("headers are ")
-	// log.Print( serializedHeaders)
 
 	return C.CString(parsedUri.String()), C.CString(method), C.CString(serializedHeaders)
 }
+
+//export onResponse
+func onResponse(rawHeaders string) (*C.char){
+  headerMap := make(http.Header)
+	parseHeaders(headerMap, rawHeaders)
+
+  //start something with headers
+	headerMap.Add("X-response-newheader","mytestval1");
+	//end
+
+	//serialize map back to string
+	serializedHeaders := serializeHeaders(headerMap);
+  return C.CString(serializedHeaders)
+}
+
+//modify the header map, placeholder for plugins
 func modifyHeaders(headerMap http.Header) {
 	for k := range headerMap {
 		if strings.Contains(k, "X-MyHeader") {
@@ -54,6 +68,8 @@ func modifyHeaders(headerMap http.Header) {
 		}
 	}
 }
+
+//serialize the headersMap back to a string
 func serializeHeaders(headerMap http.Header) string {
 	var buffer bytes.Buffer
 	for key := range headerMap {
@@ -78,6 +94,7 @@ func serializeHeaders(headerMap http.Header) string {
 	return serializedHeaders
 }
 
+//parse rawHeaders back into a map
 func parseHeaders(headerMap http.Header, rawHeaders string) {
 	headerValues := strings.Split(rawHeaders, "\n")
 	for _, header := range headerValues {
