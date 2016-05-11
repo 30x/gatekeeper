@@ -40,19 +40,15 @@ function events.on_request(uri, method, raw_headers)
   }
 end
 
-function events.on_resposne(headers)
+function events.on_response(headers)
   local serializedHeaders = c.serialize_headers(headers)
-  print(serialized_headers)
   local server = ffi.load('../go/server.so')
-  local cHeaders = server.onResponse(raw_headers)
+  local cHeaders = server.onResponse(c.ToGoString(serializedHeaders))
   serializedHeaders = c.ToLua(cHeaders)
   local headers = c.parse_headers(serializedHeaders)
   return {
     headers=headers
   }
 end
-
-
-
 
 return events

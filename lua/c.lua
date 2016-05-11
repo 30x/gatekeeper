@@ -213,7 +213,7 @@ function lua2go.serialize_headers(headers)
     addString(buffer,': ')
     if type(v) == 'table' then
       for inner_i,inner_v in ipairs(v) do
-        if not inner_i == 1 end
+        if not inner_i == 1 then
           addString(buffer,',')
         end
         addString(buffer,inner_v)
@@ -223,6 +223,7 @@ function lua2go.serialize_headers(headers)
     end
     addString(buffer,'\n')
   end
+  return table.concat(buffer)
 end
 
 function lua2go.parse_headers(headersString)
