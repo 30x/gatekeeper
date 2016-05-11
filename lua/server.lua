@@ -22,7 +22,7 @@ function server.on_request()
 end
 
 function server.on_response()
-  local headers = ngx.get_headers()
+  local headers = ngx.resp.get_headers()
   local result = events.on_response(headers)
   set_response_headers(result.headers)
 end
@@ -47,7 +47,7 @@ function set_response_headers(headers)
     ngx.header[k] = v
     lower_headers[string.lower(k)] = v
   end
-  for k,v in pairs(ngx.get_headers()) do
+  for k,v in pairs(ngx.resp.get_headers()) do
     if not lower_headers[k] then
       print('deleting ' .. k)
       ngx.header[k] = nil
