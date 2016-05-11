@@ -22,8 +22,8 @@ var LogWarn = log.New(os.Stdout, "WARN: ", log.Ldate|log.Ltime|log.LUTC|log.Lsho
 //LogError the error log level
 var LogError = log.New(os.Stdout, "ERROR: ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 
-//export process
-func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C.char) {
+//export onRequest
+func onRequest(uri string, method string, rawHeaders string) (*C.char, *C.char, *C.char) {
 	//parse uri
 	parsedUri, err := url.Parse(uri)
 	if err != nil {
@@ -40,6 +40,20 @@ func process(uri string, method string, rawHeaders string) (*C.char, *C.char, *C
 	serializedHeaders := serializeHeaders(headerMap)
 
 	return C.CString(parsedUri.String()), C.CString(method), C.CString(serializedHeaders)
+}
+
+//export onResponse
+func onResponse(rawHeaders string) (*C.char){
+  headerMap := make(http.Header)
+	parseHeaders(headerMap, rawHeaders)
+
+  //start something with headers
+	headerMap.Add("X-response-newheader","mytestval1");
+	//end
+
+	//serialize map back to string
+	serializedHeaders := serializeHeaders(headerMap);
+  return C.CString(serializedHeaders)
 }
 
 //modify the header map, placeholder for plugins

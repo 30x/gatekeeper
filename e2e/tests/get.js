@@ -32,6 +32,7 @@ describe('valid rest return', function () {
         }
       }, function (err, r, body) {
         console.log('request received');
+        console.log(r.headers)
       })
     })
   })

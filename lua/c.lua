@@ -177,6 +177,80 @@ function lua2go.GoSliceToTable(slice)
   return table
 end
 
+function newStack ()
+  return {""}   -- starts with an empty string
+end
+
+function addString (stack, s)
+  table.insert(stack, s)    -- push 's' into the the stack
+  for i=table.getn(stack)-1, 1, -1 do
+    if string.len(stack[i]) > string.len(stack[i+1]) then
+      break
+    end
+    stack[i] = stack[i] .. table.remove(stack)
+  end
+end
+
+function split(s, delimiter)
+    result = {};
+    for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+        table.insert(result, match);
+    end
+    return result;
+end
+
+function lines(str)
+  local t = {}
+  local function helper(line) table.insert(t, line) return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
+
+function lua2go.serialize_headers(headers)
+  local buffer = newStack()
+  for k,v in pairs(headers) do
+    addString(buffer,k)
+    addString(buffer,': ')
+    if type(v) == 'table' then
+      for inner_i,inner_v in ipairs(v) do
+        if not inner_i == 1 end
+          addString(buffer,',')
+        end
+        addString(buffer,inner_v)
+      end
+    else
+      addString(buffer,v)
+    end
+    addString(buffer,'\n')
+  end
+end
+
+function lua2go.parse_headers(headersString)
+  local result = {};
+  local headersRows = lines(headersString)
+  for i,row in ipairs(headersRows) do
+    local keyValues = split(row,": ")
+    local length = #keyValues
+    if length == 2 then
+      local key = keyValues[1]
+      local value = keyValues[2]
+
+      if key and value then
+        local t = result[key]
+        if not t then
+          t = {}
+          result[key] = t
+        end
+        local splitValues = split(value,',')
+        for i,splitValue in ipairs(splitValues) do
+          t[#t + 1] = splitValue
+        end
+      end
+    end
+  end
+  return result
+end
+
 -- retrieve a function to convert the luaVar to a goVar based on the type of luaVar
 -- currently supports Go strings and ints
 function lua2go.Converter(luaVar)
