@@ -43,16 +43,20 @@ func onRequest(uri string, method string, rawHeaders string) (*C.char, *C.char, 
 }
 
 //export onResponse
-func onResponse(rawHeaders string) (*C.char){
-  headerMap := make(http.Header)
-	parseHeaders(headerMap, rawHeaders)
+func onResponse(uri string, method string, requestHeaders string, responseHeaders string) (*C.char){
+
+  responseHeaderMap := make(http.Header)
+  requestHeaderMap := make(http.Header)
+
+	parseHeaders(responseHeaderMap, responseHeaders)
+	parseHeaders(requestHeaderMap, requestHeaders)
 
   //start something with headers
-	headerMap.Add("X-response-newheader","mytestval1");
+	responseHeaderMap.Add("X-response-newheader","mytestval1");
 	//end
 
 	//serialize map back to string
-	serializedHeaders := serializeHeaders(headerMap);
+	serializedHeaders := serializeHeaders(responseHeaderMap);
   return C.CString(serializedHeaders)
 }
 

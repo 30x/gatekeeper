@@ -2,19 +2,21 @@
 local server = {}
 
 local events = require('./events')
+local c = require('./c')
 local uuid = require('resty.jit-uuid')
 
 function server.on_request()
   local uuidInstance = uuid()             ---> v4 UUID (random)
-  local headers = ngx.req.get_headers()
+  ngx.req.set_header('X-APIGEE-REQUEST-ID',uuidInstance)
+
   local method = ngx.req.get_method()
   local uri = ngx.unescape_uri(ngx.var.request_uri)
-  ngx.req.set_header('X-APIGEE-REQUEST-ID',uuidInstance)
   local raw_headers = ngx.req.raw_header(true)
 
   local result = events.on_request(uri, method, raw_headers)
-  local resultHeaders = result.headers
-  set_request_headers(resultHeaders)
+
+  set_request_headers(result.headers)
+
   if not result.uri == uri then
     ngx.req.set_uri(result.uri)
   end
@@ -25,8 +27,15 @@ function server.on_request()
 end
 
 function server.on_response()
-  local headers = ngx.resp.get_headers()
-  local result = events.on_response(headers)
+
+  local response_headers = ngx.resp.get_headers()
+  local request_headers = ngx.req.raw_header(true)
+  local method = ngx.req.get_method()
+  local uri = ngx.unescape_uri(ngx.var.request_uri)
+  local response_headers_serialized = c.serialize_headers(response_headers)
+
+  local result = events.on_response(uri,method,request_headers,response_headers_serialized)
+
   set_response_headers(result.headers)
 end
 
