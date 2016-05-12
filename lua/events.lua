@@ -16,31 +16,34 @@ struct onRequest_return {
 
 extern struct onRequest_return onRequest(GoString p0, GoString p1, GoString p2);
 
-extern char* onResponse(GoString p0);
+extern char* onResponse(GoString p0, GoString p1, GoString p2, GoString p3);
 
 ]]
 
-function events.on_request(uri, method, raw_headers)
+function events.on_request(uri, method, request_headers)
   -- note: apigee externs are defined in nginx.confg
   local server = ffi.load('../go/server.so')
-  local methodString = c.ToGoString(method)
-  local uriString = c.ToGoString(uri)
-  local headersString = c.ToGoString(raw_headers)
-  -- local keys,values = headersToTables(headers)
-  local goResult = server.onRequest(uriString, methodString,headersString)
 
-  ffi.gc(goResult.r0, ffi.C.free)
-  ffi.gc(goResult.r1, ffi.C.free)
-  ffi.gc(goResult.r2, ffi.C.free)
-  ffi.gc(goResult, ffi.C.free)
-  ffi.gc(methodString, ffi.C.free)
-  ffi.gc(uriString, ffi.C.free)
-  ffi.gc(headersString, ffi.C.free)
+  --convert to c
+  local c_method = c.ToGoString(method)
+  local c_uri = c.ToGoString(uri)
+  local c_request_headers = c.ToGoString(request_headers)
 
-  local uriResult = c.ToLua(goResult.r0)
-  local methodResult = c.ToLua(goResult.r1)
-  local headerResult = c.ToLua(goResult.r2)
+  local result = server.onRequest(c_uri, c_method, c_request_headers)
+
+  local uriResult = c.ToLua(result.r0)
+  local methodResult = c.ToLua(result.r1)
+  local headerResult = c.ToLua(result.r2)
   local headers = c.parse_headers(headerResult)
+
+  --free memory
+  ffi.gc(result.r0, ffi.C.free)
+  ffi.gc(result.r1, ffi.C.free)
+  ffi.gc(result.r2, ffi.C.free)
+  -- ffi.gc(result, ffi.C.free)
+  -- ffi.gc(c_method, ffi.C.free)
+  -- ffi.gc(c_uri, ffi.C.free)
+  -- ffi.gc(c_request_headers, ffi.C.free)
 
   return {
     headers = headers,
@@ -49,15 +52,25 @@ function events.on_request(uri, method, raw_headers)
   }
 end
 
-function events.on_response(headers)
-  local serializedHeaders = c.serialize_headers(headers)
+function events.on_response(uri, method,requestHeaders,responseHeaders)
   local server = ffi.load('../go/server.so')
-  local cString = c.ToGoString(serializedHeaders)
-  local cHeaders = server.onResponse(cString)
-  ffi.gc(cHeaders, ffi.C.free)
-  ffi.gc(cString, ffi.C.free)
-  serializedHeaders = c.ToLua(cHeaders)
+
+  local c_response_headers = c.ToGoString(responseHeaders)
+  local c_request_headers = c.ToGoString(requestHeaders)
+  local c_uri = c.ToGoString(uri)
+  local c_method = c.ToGoString(method)
+
+  local c_headers = server.onResponse(c_uri,c_method,c_request_headers,c_response_headers)
+
+  local serializedHeaders = c.ToLua(c_headers)
   local headers = c.parse_headers(serializedHeaders)
+
+  ffi.gc(c_headers, ffi.C.free)
+  -- ffi.gc(c_uri, ffi.C.free)
+  -- ffi.gc(c_method, ffi.C.free)
+  -- ffi.gc(c_request_headers, ffi.C.free)
+  -- ffi.gc(c_response_headers, ffi.C.free)
+
   return {
     headers=headers
   }

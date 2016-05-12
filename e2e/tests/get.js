@@ -12,12 +12,14 @@ describe('valid rest return', function () {
     this.timeout(10000)
     var restify = null;
     var closed = false
+    var first = false
     server(port, function (key, value) {
       console.log('header {%s:%s}', key, value)
       if (!closed && value.includes('modifiedtest1')) {
         console.log('done')
         restify.close()
-        done()
+        first && done()
+        first = true
         closed = true
       }
     }, function (err, restifyInner) {
@@ -32,7 +34,12 @@ describe('valid rest return', function () {
         }
       }, function (err, r, body) {
         console.log('request received');
-        console.log(r.headers)
+        Object.keys(r.headers).forEach((key) => {
+          if(key == 'x-response-newheader'){
+            first && done()
+            first = true
+          }
+        })
       })
     })
   })
