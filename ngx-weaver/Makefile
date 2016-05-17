@@ -5,6 +5,7 @@ JITFLAGS = -O
 JITFILES = \
 	init-weaver.luac \
 	weaver-request.luac weaver-response.luac \
+	weaver-header-filter.luac \
 	c.luac
 FOUNDFILES = $(JITFILES:%=../lua/%)
 

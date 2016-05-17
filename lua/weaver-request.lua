@@ -1,6 +1,12 @@
 local c = require('./c')
 
 function pollCommand(id)
+  -- This part is peformance-critical. "GoPollRequest" does a non-blocking
+  -- poll of a Go channel. That's very efficient. But there is no way to
+  -- make nginx sleep and then wake it up from another thread, so we have
+  -- to "sleep." The loop below adds a minimum of one millisecond latency to
+  -- every call. We could optimize the selection of the wait time to make
+  -- this lower.
   local cmd = gobridge.GoPollRequest(id, 0)
   while cmd == nil do
     ngx.sleep(0.001)
@@ -16,6 +22,9 @@ function sendError(id, err)
   ngx.exit(500)
 end
 
+-- Respond to Go by reading the message body and sending it to the
+-- Go channel. nginx / openresty only makes it convenient to do this
+-- in one big chunk.
 function sendBody(id)
   -- TODO this is not going to work without a larger buffer.
   -- We need to either change nginx settings or tell Go to read the file.
@@ -26,8 +35,7 @@ function sendBody(id)
   gobridge.GoSendRequestBodyChunk(id, 1, body, string.len(body))
 end
 
-function setHeaders(rawHeaders)
-  local headers = c.parse_headers(rawHeaders)
+function setHeaders(headers)
   local lower_headers = {}
   for k,v in pairs(headers) do
     ngx.req.set_header(k,v)
@@ -41,29 +49,35 @@ function setHeaders(rawHeaders)
   end
 end
 
+-- Replace the URI on the request
 function setURI(newURI)
   -- TODO I think we need to parse the new URI to also set query params
   -- TODO also, what if it is a complete URI (with a host). How do we change target?
   ngx.req.set_uri(newURI)
 end
 
+-- Replace the body of the request, before passing on to the "proxy_pass"
+-- target. This supports streaming from the Go code.
 function replaceRequestBody(wasWritten, chunkID)
   local newBody = getChunk(chunkID)
-  if wasWritten then
-    ngx.req.append_body(newBody)
-  else
+  if not wasWritten then
     ngx.req.read_body()
     -- TODO Hard coded response body size. Where to put?
     ngx.req.init_body(1024 * 1024)
-    ngx.req.append_body(newBody)
   end
+  ngx.req.append_body(newBody)
 end
 
+-- Replace the response body with content that came from Go. This
+-- will only happen after a SWCH command from Go. It works in streaming mode.
 function replaceResponseBody(chunkID)
   local newBody = getChunk(chunkID)
   ngx.print(newBody)
 end
 
+-- Go passes body data back to us in chunks that it allocates, and then
+-- lets us access and requires that we free. This simplifies the Lua / C / Go
+-- interface.
 function getChunk(chunkID)
   local id = tonumber(chunkID, 16)
   local data = gobridge.GoGetChunk(id)
@@ -75,47 +89,52 @@ function getChunk(chunkID)
   return chunk
 end
 
+-- Reusable functions above. Main code starts here.
+
 local id = gobridge.GoCreateRequest()
 
 gobridge.GoBeginRequest(id, ngx.req.raw_header())
 
-local bodyWasWritten = false
+local requestBodyWritten = false
 local proxying = true
 local returnStatus = 200
 local cmd
+
 repeat
   cmdBuf = pollCommand(id)
   cmd = string.sub(cmdBuf, 0, 4)
-  -- print(cmd)
-
   if cmd == 'ERRR' then
     sendError(id, string.sub(cmdBuf, 5))
   elseif cmd == 'RBOD' then
     sendBody(id)
   elseif cmd == 'WHDR' then
-    -- TODO to set response headers, we have to store them and then
-    -- use a response header filter later on!
+    local headers = c.parse_headers(string.sub(cmdBuf, 5))
     if proxying then
-      setHeaders(string.sub(cmdBuf, 5))
+      setHeaders(headers)
+    else
+      -- We can't change response headers here -- save them for later
+      ngx.ctx.responseHeaders = headers
     end
   elseif cmd == 'WURI' then
     setURI(string.sub(cmdBuf, 5))
   elseif cmd == 'WBOD' then
     if proxying then
-      replaceRequestBody(bodyWasWritten, string.sub(cmdBuf, 5))
-      bodyWasWritten = true
+      replaceRequestBody(requestBodyWritten, string.sub(cmdBuf, 5))
+      requestBodyWritten = true
     else
       replaceResponseBody(string.sub(cmdBuf, 5))
     end
   elseif cmd == 'SWCH' then
     proxying = false
+    ngx.ctx.notProxying = 1
     returnStatus = tonumber(string.sub(cmdBuf, 5))
   end
 until cmd == 'DONE' or cmd == 'ERRR'
 
+-- If we don't get here we will have a memory leak in Go.
 gobridge.GoFreeRequest(id)
 
-if bodyWasWritten then
+if requestBodyWritten then
   ngx.req.finish_body()
 end
 
