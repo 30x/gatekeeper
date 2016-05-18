@@ -11,6 +11,7 @@ ffi.cdef[[
   void GoCancelRequest(unsigned int id);
   void GoSendRequestBodyChunk(
     unsigned int id, int last, const void* chunk, unsigned int len);
+  char* GoTransformHeaders(unsigned int id, const char* rawHeaders);
   void GoInstallTestHandler();
 ]]
 gobridge = ffi.load('gobridge.so')

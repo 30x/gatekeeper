@@ -91,7 +91,9 @@ end
 
 -- Reusable functions above. Main code starts here.
 
+-- The ID identifies the request in the Go process. It will be released in the body filter.
 local id = gobridge.GoCreateRequest()
+ngx.ctx.id = id
 
 gobridge.GoBeginRequest(id, ngx.req.raw_header())
 
@@ -130,9 +132,6 @@ repeat
     returnStatus = tonumber(string.sub(cmdBuf, 5))
   end
 until cmd == 'DONE' or cmd == 'ERRR'
-
--- If we don't get here we will have a memory leak in Go.
-gobridge.GoFreeRequest(id)
 
 if requestBodyWritten then
   ngx.req.finish_body()
