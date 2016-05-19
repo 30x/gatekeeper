@@ -32,7 +32,13 @@ function sendBody(id)
   -- at least not the way that we're doing it.
   ngx.req.read_body()
   local body = ngx.req.get_body_data()
-  gobridge.GoSendRequestBodyChunk(id, 1, body, string.len(body))
+  local bodyLen
+  if body == nil then
+    bodyLen = 0
+  else
+    bodyLen = string.len(body)
+  end
+  gobridge.GoSendRequestBodyChunk(id, 1, body, bodyLen)
 end
 
 function setHeaders(headers)
