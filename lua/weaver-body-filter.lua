@@ -1,3 +1,5 @@
+local common = require('./weaver-common')
+
 if not (ngx.ctx.notProxying == 1) then
   local body = ngx.arg[1]
   local bodyLen
@@ -16,14 +18,7 @@ if not (ngx.ctx.notProxying == 1) then
   if newChunkID == 0 then
     ngx.arg[1] = ""
   elseif newChunkID > 0 then
-    local id = tonumber(newChunkID, 16)
-    local data = gobridge.GoGetChunk(id)
-    local len = gobridge.GoGetChunkLength(id)
-    -- Made a copy of the chunk from Go land, and then we can free it
-    local chunk = ffi.string(data, len)
-    gobridge.GoReleaseChunk(id)
-    ffi.C.free(data)
-    ngx.arg[1] = chunk
+    ngx.arg[1] = common.getChunk(newChunkID)
   end
 end
 

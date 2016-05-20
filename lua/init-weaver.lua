@@ -1,4 +1,4 @@
- ffi = require('ffi');
+ffi = require('ffi');
 ffi.cdef[[
   unsigned int GoCreateRequest();
   void GoFreeRequest(unsigned int id);

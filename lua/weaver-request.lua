@@ -1,21 +1,5 @@
 local c = require('./c')
-
-function pollCommand(id)
-  -- This part is peformance-critical. "GoPollRequest" does a non-blocking
-  -- poll of a Go channel. That's very efficient. But there is no way to
-  -- make nginx sleep and then wake it up from another thread, so we have
-  -- to "sleep." The loop below adds a minimum of one millisecond latency to
-  -- every call. We could optimize the selection of the wait time to make
-  -- this lower.
-  local cmd = gobridge.GoPollRequest(id, 0)
-  while cmd == nil do
-    ngx.sleep(0.001)
-    cmd = gobridge.GoPollRequest(id, 0)
-  end
-  local ret = ffi.string(cmd)
-  ffi.C.free(cmd)
-  return ret
-end
+local common = require('./weaver-common')
 
 function sendError(id, err)
   nginx.say(err)
@@ -65,7 +49,7 @@ end
 -- Replace the body of the request, before passing on to the "proxy_pass"
 -- target. This supports streaming from the Go code.
 function replaceRequestBody(wasWritten, chunkID)
-  local newBody = getChunk(chunkID)
+  local newBody = common.getChunk(chunkID)
   if not wasWritten then
     ngx.req.read_body()
     -- TODO Hard coded response body size. Where to put?
@@ -77,22 +61,8 @@ end
 -- Replace the response body with content that came from Go. This
 -- will only happen after a SWCH command from Go. It works in streaming mode.
 function replaceResponseBody(chunkID)
-  local newBody = getChunk(chunkID)
+  local newBody = common.getChunk(chunkID)
   ngx.print(newBody)
-end
-
--- Go passes body data back to us in chunks that it allocates, and then
--- lets us access and requires that we free. This simplifies the Lua / C / Go
--- interface.
-function getChunk(chunkID)
-  local id = tonumber(chunkID, 16)
-  local data = gobridge.GoGetChunk(id)
-  local len = gobridge.GoGetChunkLength(id)
-  -- Made a copy of the chunk from Go land, and then we can free it
-  local chunk = ffi.string(data, len)
-  gobridge.GoReleaseChunk(id)
-  ffi.C.free(data)
-  return chunk
 end
 
 -- Reusable functions above. Main code starts here.
@@ -109,7 +79,7 @@ local returnStatus = 200
 local cmd
 
 repeat
-  cmdBuf = pollCommand(id)
+  cmdBuf = common.pollCommand(id)
   cmd = string.sub(cmdBuf, 0, 4)
   if cmd == 'ERRR' then
     sendError(id, string.sub(cmdBuf, 5))
