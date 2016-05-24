@@ -1,6 +1,9 @@
 local c = require('./c')
 local common = require('./weaver-common')
 
+-- Turn on lots of printing out
+ngx.ctx.debug = true
+
 function sendError(id, err)
   nginx.say(err)
   ngx.exit(500)
@@ -68,8 +71,11 @@ end
 -- Reusable functions above. Main code starts here.
 
 -- The ID identifies the request in the Go process. It will be released in the body filter.
-local id = gobridge.GoCreateRequest()
+local handler = ngx.ctx.handler
+local id = gobridge.GoCreateRequest(handler)
 ngx.ctx.id = id
+local rid = gobridge.GoCreateResponse(handler)
+ngx.ctx.rid = rid
 
 gobridge.GoBeginRequest(id, ngx.req.raw_header())
 
@@ -106,6 +112,7 @@ repeat
     proxying = false
     ngx.ctx.notProxying = 1
     returnStatus = tonumber(string.sub(cmdBuf, 5))
+    ngx.status = returnStatus
   end
 until cmd == 'DONE' or cmd == 'ERRR'
 
@@ -114,5 +121,8 @@ if requestBodyWritten then
 end
 
 if not proxying then
+  if ngx.ctx.debug then
+    print('Returning with status ', returnStatus)
+  end
   ngx.exit(returnStatus)
 end

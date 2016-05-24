@@ -1,4 +1,5 @@
 local c = require('./c')
+local common = require('./weaver-common')
 
 function setResponseHeaders(headers)
   local lower_headers = {}
@@ -14,6 +15,10 @@ function setResponseHeaders(headers)
   end
 end
 
+function setStatus(status)
+  ngx.status = status
+end
+
 if ngx.ctx.notProxying == 1 then
   -- Replace the headers send back as part of the generated response
   if not (ngx.ctx.responseHeaders == nil) then
@@ -23,12 +28,39 @@ if ngx.ctx.notProxying == 1 then
   ngx.header['Content-Length'] = nil
 
 else
-  -- Transform the headers that came back from a proxy response
+  -- If we get here then we have the result of a proxy_pass.
+  -- Run the response path here.
+  local id = ngx.ctx.id
+  local rid = ngx.ctx.rid
+
   local outHdrs = c.serialize_headers(ngx.header)
-  local newHdrs = gobridge.GoTransformHeaders(ngx.ctx.id, outHdrs)
-  if not (newHdrs == nil) then
-    local h = c.parse_headers(ffi.string(newHdrs))
-    ffi.C.free(newHdrs)
-    setResponseHeaders(h)
-  end
+  gobridge.GoBeginResponse(rid, id, ngx.status, outHdrs)
+
+  local cmd
+  local cmdBuf
+  repeat
+    cmdBuf = common.pollResponseCommand(rid)
+    cmd = string.sub(cmdBuf, 0, 4)
+    if cmd == 'ERRR' then
+      -- Perhaps there is something better to do here?
+      print('Error from go code on response path: ', string.sub(cmdBuf, 5))
+      ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+    elseif cmd == 'WSTA' then
+      setStatus(string.sub(cmdBuf, 5))
+    elseif cmd == 'WHDR' then
+      local h = c.parse_headers(string.sub(cmdBuf, 5))
+      setResponseHeaders(h)
+    elseif cmd == 'WBOD' then
+      ngx.ctx.nextWriteChunk = string.sub(cmdBuf, 5)
+      -- Let nginx compute the content length
+      ngx.header['Content-Length'] = nil
+    elseif cmd == 'RBOD' then
+      -- Because we might write the body after reading it
+      ngx.header['Content-Length'] = nil
+    elseif cmd == 'DONE' then
+      ngx.ctx.commandsDone = true
+    end
+  until cmd == 'DONE' or cmd == 'ERRR' or cmd == 'WBOD' or cmd == 'RBOD'
+
+  ngx.ctx.lastCommand = cmd
 end

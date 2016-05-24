@@ -28,6 +28,24 @@ function common.pollCommand(id)
   end
   local ret = ffi.string(cmd)
   ffi.C.free(cmd)
+  if ngx.ctx.debug then
+    print('Request command: ', string.sub(ret, 0, 4))
+  end
+  return ret
+end
+
+function common.pollResponseCommand(rid)
+  -- In the response path we can't use ngx.sleep.
+  -- So we have to do a blocking response.
+  local cmd = gobridge.GoPollResponse(rid, 1)
+  if cmd == nil then
+    return 'ERRR'
+  end
+  local ret = ffi.string(cmd)
+  ffi.C.free(cmd)
+  if ngx.ctx.debug then
+    print('Response command: ', string.sub(ret, 0, 4))
+  end
   return ret
 end
 
