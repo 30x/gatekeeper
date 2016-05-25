@@ -45,7 +45,7 @@ else
       -- Perhaps there is something better to do here?
       print('Error from go code on response path: ', string.sub(cmdBuf, 5))
       ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-    elseif cmd == 'WSTA' then
+    elseif cmd == 'WSTA' or cmd == 'SWCH' then
       setStatus(string.sub(cmdBuf, 5))
     elseif cmd == 'WHDR' then
       local h = c.parse_headers(string.sub(cmdBuf, 5))

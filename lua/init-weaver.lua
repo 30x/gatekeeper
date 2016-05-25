@@ -1,6 +1,6 @@
 ffi = require('ffi');
 ffi.cdef[[
-  void GoCreateHandler(const char* id);
+  void GoCreateHandler(const char* id, const char* configURI);
   void GoDestroyHandler(const char* id);
   unsigned int GoCreateRequest(const char* handlerID);
   unsigned int GoCreateResponse(const char* handlerID);
@@ -28,4 +28,4 @@ gobridge.GoInstallTestHandler()
 
 -- In the real code, we will create one handler per worker per "proxy".
 -- We could do this by reading configs and even by passing them to the gateway.
-gobridge.GoCreateHandler('default')
+gobridge.GoCreateHandler('default', '')
