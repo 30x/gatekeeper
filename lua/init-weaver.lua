@@ -19,13 +19,14 @@ ffi.cdef[[
     unsigned int id, int last, const void* chunk, unsigned int len);
   void GoSendResponseBodyChunk(
     unsigned int id, int last, const void* chunk, unsigned int len);
-  void GoInstallTestHandler();
 ]]
 gobridge = ffi.load('weaver.so')
 
-print('Installing test handler for weaver.')
-gobridge.GoInstallTestHandler()
-
 -- In the real code, we will create one handler per worker per "proxy".
 -- We could do this by reading configs and even by passing them to the gateway.
-gobridge.GoCreateHandler('default', '')
+local cfgErr = gobridge.GoCreateHandler('default', 'urn:weaver-proxy:unit-test')
+if not (cfgErr == nil) then
+  local errMsg = ffi.string(cfgErr)
+  print('Error loading configuration: ', errMsg)
+  ffi.C.free(cfgErr)
+end

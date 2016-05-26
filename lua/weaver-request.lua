@@ -2,7 +2,7 @@ local c = require('./c')
 local common = require('./weaver-common')
 
 -- Turn on lots of printing out
-ngx.ctx.debug = true
+--ngx.ctx.debug = true
 
 function sendError(id, err)
   nginx.say(err)
@@ -76,6 +76,12 @@ local id = gobridge.GoCreateRequest(handler)
 ngx.ctx.id = id
 local rid = gobridge.GoCreateResponse(handler)
 ngx.ctx.rid = rid
+
+if id == 0 or rid == 0 then
+  print('Invalid handler ', handler)
+  ngx.exit(500)
+  return
+end
 
 gobridge.GoBeginRequest(id, ngx.req.raw_header())
 
