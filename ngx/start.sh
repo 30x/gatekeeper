@@ -5,6 +5,6 @@ then
   mkdir ./run
 fi
 
-cp $GOPATH/src/github.com/30x/weaver/libweaver.so .
+cp $GOPATH/src/weaver/libgozerian.so .
 
 openresty -p ./run -c ../nginx.conf
