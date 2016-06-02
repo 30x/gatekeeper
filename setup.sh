@@ -9,4 +9,5 @@ luarocks-5.1 install lua-resty-http
 luarocks-5.1 install lua-resty-jit-uuid
 #luarocks-5.1 install --server=http://luarocks.org/dev lua2go
 luarocks-5.1 install busted
+git clone 
 ./lua/bustedjit ./ngx/lua/tests/**.lua
