@@ -6,3 +6,4 @@ server.h
 node_modules
 error.log
 lib/
+*.so
