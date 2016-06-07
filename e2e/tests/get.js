@@ -15,18 +15,18 @@ describe('valid rest return', function () {
     var first = false
     server(port, function (key, value) {
       console.log('header {%s:%s}', key, value)
-      if (!closed && value.includes('modifiedtest1')) {
+      //if (!closed && value.includes('modifiedtest1')) {
         console.log('done')
         restify.close()
         first && done()
         first = true
         closed = true
-      }
+      //}
     }, function (err, restifyInner) {
       restify = restifyInner
       console.log('started')
       request({
-        uri: 'http://localhost:3000/',
+        uri: 'http://localhost:9002/',
         headers: {
           'X-MyHeader-Something': 'test1',
           'X-MyHeader-Something2': 'test2',
