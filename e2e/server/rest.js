@@ -14,6 +14,7 @@ module.exports = function (port, headersCb,cb) {
   }
   var server = restify.createServer();
   server.get('/', respond);
+   server.get('/pass', respond);
   server.head('/', respond);
   server.put('/', respond);
   server.post('/', respond);

@@ -11,22 +11,20 @@ describe('valid rest return', function () {
   it('on get', function (done) {
     this.timeout(10000)
     var restify = null;
-    var closed = false
     var first = false
     server(port, function (key, value) {
       console.log('header {%s:%s}', key, value)
-      //if (!closed && value.includes('modifiedtest1')) {
+      if (!first) {
         console.log('done')
         restify.close()
-        first && done()
+        done()
         first = true
-        closed = true
-      //}
+      }
     }, function (err, restifyInner) {
       restify = restifyInner
       console.log('started')
       request({
-        uri: 'http://localhost:9002/',
+        uri: 'http://localhost:9002/pass',
         headers: {
           'X-MyHeader-Something': 'test1',
           'X-MyHeader-Something2': 'test2',
