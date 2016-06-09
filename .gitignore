@@ -5,5 +5,4 @@ server.h
 .idea
 node_modules
 error.log
-
 *.so
