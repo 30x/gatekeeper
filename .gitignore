@@ -5,5 +5,5 @@ server.h
 .idea
 node_modules
 error.log
-lua/
+
 *.so
