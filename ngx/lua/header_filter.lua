@@ -1,1 +1,0 @@
-gozerian.header_filter()
