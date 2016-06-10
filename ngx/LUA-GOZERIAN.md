@@ -7,3 +7,5 @@
 `--libgozerian = require('./lib/resty/gozerian/index')`
 `luarocks reference luarocks-5.1 install --server=http://luarocks.org/dev lua-gozerian`
 `libgozerian = require('lua-gozerian')`
+
+5. run clone.sh to run lua-gozerian locally
