@@ -8,3 +8,8 @@ command -v luajit >/dev/null 2>&1 || { echo "I require luajit but it's not insta
 command -v luarocks-5.1 >/dev/null 2>&1 || { echo "I require luarocks-5.1 but it's not installed.  Aborting." >&2; exit 1; }
 luarocks-5.1 install luasec OPENSSL_DIR=/usr/local/opt/openssl/
 luarocks-5.1 install --server=http://luarocks.org/dev lua-gozerian
+pushd ngx
+chmod +x clone-gozerian.sh
+./clone-gozerian.sh
+popd
+
