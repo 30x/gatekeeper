@@ -6,4 +6,4 @@ server.h
 node_modules
 error.log
 *.so
-ngx/lua
+/ngx/lua/
