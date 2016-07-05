@@ -1,7 +1,6 @@
 build
 lua
 run
-pipes
 *.so
 .DS_Store
 .vscode
