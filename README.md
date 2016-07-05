@@ -4,7 +4,7 @@
 2. Run `make` to install lua libs and build the shared lib
 3. Run `./start.sh` to start nginx (openresty must be on the path)
 
-Your should now be able to run the default pipe. Try `curl localhost:9002`
+Your should now be able to run the default pipe. Try `curl localhost:9000`
 
 1. Run `./stop.sh` to stop nginx
 
