@@ -1,9 +1,8 @@
-server.so
-server.h
+build
+lua
+run
+pipes
+*.so
 .DS_Store
 .vscode
 .idea
-node_modules
-error.log
-*.so
-/ngx/lua/
