@@ -1,6 +1,10 @@
 request:
   - dump:
       dumpBody: true
+  - verifyAPIKey:
+      apidURL: http://0:8081/apid/verifyapikey
+      apiOrg: test
+      apiKeyHeader: X-Apigee-API-Key
 response:
   - dump:
       dumpBody: false
