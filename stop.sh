@@ -1,2 +1,3 @@
 #!/bin/sh
-openresty -p run -s stop
+BASEDIR=$(dirname "$0")
+openresty -p $BASEDIR/run -s stop
