@@ -4,7 +4,7 @@
   * On a mac you can simply run `brew update && brew install homebrew/nginx/openresty`
   * On any other platform, you will need to [visit the installation page.](http://openresty.org/en/installation.html) for installation details
 1. Run `make` to install lua libs and build the shared lib
-1. Edit `nginx/nginx.conf` and modify this path to be the abolsute path on your system.
+1. Edit `nginx/nginx.conf` and modify this path to be an absolute path on your system.
   ```
   local handlers = {
       default = 'file:///Users/apigee/develop/go/src/github.com/30x/zuul/pipes/default.yaml'
