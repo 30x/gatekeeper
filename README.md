@@ -1,28 +1,47 @@
-## Setup
+## Install
+
+### Prerequisites
 
 1. Install openresty (nginx w/ luajit & luasec)
-  * On a mac you can simply run `brew update && brew install homebrew/nginx/openresty`
-  * On any other platform, you will need to [visit the installation page.](http://openresty.org/en/installation.html) for installation details
-1. Run `make` to install lua libs and build the shared lib
-1. Edit `nginx/nginx.conf` and modify this path to be an absolute path on your system.
+  * On a Mac, run `brew update && brew install homebrew/nginx/openresty`.
+  * For other platforms, visit the [installation page](http://openresty.org/en/installation.html) for installation details.
+
+### Either build from source
+
+1. `git clone https://github.com/30x/gatekeeper.git`.
+2. `cd gatekeeper` and run `make` install Lua libs and build the shared lib.
+
+### Or download a release
+
+1. Download a [release](https://github.com/30x/gatekeeper/releases) from Github and unzip.
+
+## Configure
+
+1. Edit `nginx/nginx.conf` and modify the paths around line 22 to match the paths on your system:
   ```
   local handlers = {
-      default = 'file:///Users/apigee/develop/go/src/github.com/30x/zuul/pipes/default.yaml'
-    }
+      dump = 'file:///Users/sganyo/dev/gatekeeper/pipes/dump.yaml',
+      apikey = 'file:///Users/sganyo/dev/gatekeeper/pipes/apikey.yaml'
+  }
   ```
-1. Run `./start.sh` to start nginx (openresty must be on the path)
-  * If you receive this error
-  `nginx: [warn] 10240 worker_connections exceed open file resource limit: <some number>`
-  Increase your resource limit with the command `ulimit -n 10240`
+
+2. Run `./start.sh` to start nginx (openresty must be on the path)
+  * Note: If you receive an error: `nginx: [warn] 7168 worker_connections exceed open file resource limit`, increase your resource limit with the command `ulimit -n 7168`
 
 
-Your should now be able to run the default pipe. Try `curl localhost:9000`
+You should now be able to run a pipe:
+1. Run `curl localhost:9000`. You should see a response like `Hello, Guest!`
+2. Look at run/error.log. You should see request and response logging from the `dump` plugin.
 
-1. Run `./stop.sh` to stop nginx
+## Stop the server
+
+1. Run `./stop.sh` to stop openresty
+
+## Customizing
 
 For custom configuration, change the following:
 
-1. `nginx/nginx.conf` for host/path definitions
+1. `nginx/nginx.conf` for host/path definitions and assignment
 2. `pipes/default.yaml` for pipe definitions
 3. `plugins/plugins.go` to add plugins
 
