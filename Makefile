@@ -16,7 +16,7 @@ libgozerian:
 	GOPATH=$(GOPATH) go get github.com/30x/libgozerian
 
 	# todo: for plugins... get from a list
-	GOPATH=$(GOPATH) go get github.com/30x/goz-verify-api-key/plugin
+	GOPATH=$(GOPATH) go get github.com/30x/goz-verify-api-key/verifyAPIKey
 
 	cp $(PLUGINS) $(LIBGOZPATH)
 	cd $(LIBGOZPATH) && make clean && make
