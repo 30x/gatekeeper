@@ -1,0 +1,11 @@
+request:
+  - dump:
+      dumpBody: true
+  - verifyAPIKey:
+      apidUri: http://localhost:8181/verifiers/apikey
+      organization: radical-new
+      environment:  test
+      keyHeader: X-Apigee-API-Key
+response:
+  - dump:
+      dumpBody: false
