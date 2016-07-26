@@ -1,0 +1,16 @@
+package: .
+import:
+#Required modules
+- package: github.com/30x/gozerian
+  vcs: git
+  version: f3133d1beb4b6950772c46eec2f7adc85e0b30df
+- package: github.com/30x/libgozerian
+  vcs: git
+  version: a8288696b6bdf6a330bd62196d76fbae18c985ac
+
+#Installed plugins
+  
+- package: github.com/30x/goz-verify-api-key
+  vcs: git
+  version: b469906a30803a9a40a9a093271dc5168a6b421c
+
