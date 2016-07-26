@@ -3,7 +3,7 @@
 ### Prerequisites
 
 1. Install openresty (nginx w/ luajit & luasec)
-  * On a Mac, run `brew update && brew install homebrew/nginx/openresty`.
+  * On a Mac, run `brew update && brew install homebrew/nginx/openresty && brew intall glide`.
   * For other platforms, visit the [installation page](http://openresty.org/en/installation.html) for installation details.
 
 ### Either build from source
